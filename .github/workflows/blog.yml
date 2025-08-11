@@ -48,6 +48,10 @@ jobs:
           publish_dir: ./src/Blog/output
           destination_dir: pr-${{ github.event.pull_request.number }}
           keep_files: true
+          publish_branch: gh-pages #validation
+          
+      - name: List output contents
+        run: ls -la ./src/Blog/output
 
       - name: Comment with Preview URL
         if: github.event_name == 'pull_request'
