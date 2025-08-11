@@ -1,0 +1,23 @@
+﻿@inherits Statiq.Razor.StatiqRazorPage<IDocument>
+
+@{
+    Layout = "_Layout";
+    var posts = Outputs
+        .FromPipeline("Content") // Or "BlogPosts" if you configure one
+        .Where(x => x.Destination.FileNameWithoutExtension != "index")
+        .OrderByDescending(x => x.Get<DateTime?>("Published"));
+}
+
+<h1>My Blog</h1>
+
+<ul>
+@foreach (var post in posts)
+{
+    <li>
+        <a href="@post.GetLink()">@post.GetString("Title")</a>
+        <span style="color:gray">
+            (@(post.Get<DateTime?>("Published")?.ToString("yyyy-MM-dd") ?? ""))
+        </span>
+    </li>
+}
+</ul>

@@ -1,0 +1,7 @@
+﻿**/bin
+**/obj
+**/.idea
+**/cache
+
+/src/theme/
+/src/Blog/output/
