@@ -2,3 +2,12 @@ baseURL = 'https://seanfeldman.com/'
 languageCode = 'en-us'
 title = 'Sean Feldman Blog'
 theme = 'github.com/HEIGE-PCloud/DoIt'
+
+# DoIt theme configuration: enable Disqus comments
+[params]
+	[params.page]
+		[params.page.comment]
+			enable = true
+			[params.page.comment.disqus]
+				enable = true
+				shortname = "sean-feldman-blog"
