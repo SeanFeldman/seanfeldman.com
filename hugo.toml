@@ -3,6 +3,14 @@ languageCode = 'en-us'
 title = 'Sean Feldman Blog'
 theme = 'github.com/HEIGE-PCloud/DoIt'
 
+[services]
+    [service.Disqus]
+        shortname = 'sean-feldman-blog'
+
+[privacy]
+    [privacy.disqus]
+        disable = false
+
 # DoIt theme configuration: enable Disqus comments
 [params]
 	[params.page]
