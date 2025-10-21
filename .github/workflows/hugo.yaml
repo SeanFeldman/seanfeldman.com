@@ -138,20 +138,33 @@ jobs:
 
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const sha = context.payload.pull_request?.head?.sha || context.sha;
+            const ref = context.ref; // e.g., refs/pull/123/merge for PRs
 
             // Try to get the environment_url from the latest deployment status for this PR commit
             let envUrl = '';
             try {
-              const deployments = await github.rest.repos.listDeployments({ owner, repo, sha, environment: 'github-pages', per_page: 5 });
+              const deployments = await github.rest.repos.listDeployments({ owner, repo, ref, environment: 'github-pages', per_page: 20 });
               if (deployments.data && deployments.data.length) {
-                // Pick the most recent deployment for this sha
-                const dep = deployments.data[0];
+                // Pick the most recent deployment for this ref by created_at
+                const dep = deployments.data.reduce((latest, d) => {
+                  return !latest || new Date(d.created_at) > new Date(latest.created_at) ? d : latest;
+                }, null);
                 const statuses = await github.rest.repos.listDeploymentStatuses({ owner, repo, deployment_id: dep.id, per_page: 5 });
                 if (statuses.data && statuses.data.length) {
                   // Find the most recent status with an environment_url
-                  const withUrl = statuses.data.find(s => s.environment_url) || statuses.data[0];
-                  envUrl = withUrl.environment_url || '';
+                  const latestStatus = statuses.data.reduce((latest, s) => {
+                    return !latest || new Date(s.created_at) > new Date(latest.created_at) ? s : latest;
+                  }, null);
+                  envUrl = (latestStatus && latestStatus.environment_url) ? latestStatus.environment_url : '';
+                  // If latest doesn't have it, pick the newest that does
+                  if (!envUrl) {
+                    const withUrl = statuses.data
+                      .filter(s => !!s.environment_url)
+                      .reduce((latest, s) => {
+                        return !latest || new Date(s.created_at) > new Date(latest.created_at) ? s : latest;
+                      }, null);
+                    envUrl = withUrl ? withUrl.environment_url : '';
+                  }
                 }
               }
             } catch (e) {
@@ -161,11 +174,7 @@ jobs:
             const deploymentOutputUrl = process.env.FALLBACK_URL || '';
             const previewUrl = envUrl || previewFromPages || deploymentOutputUrl;
             const deploysUrl = `${{ github.server_url }}/${{ github.repository }}/deployments/activity_log?environment=github-pages`;
-            const body = [
-              `🚀 Preview deployed: ${previewUrl}`,
-              ``,
-              `🔎 View deployment in GitHub: ${deploysUrl}`
-            ].join('\n');
+            const body = `🚀 Preview deployed: ${previewUrl}`;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
