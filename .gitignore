@@ -3,5 +3,6 @@
 **/.idea
 **/cache
 
-/src/theme/
-/src/Blog/output/
+.hugo_build.lock
+/public/
+/resources/_gen/
