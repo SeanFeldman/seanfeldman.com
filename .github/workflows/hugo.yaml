@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       base_url: ${{ steps.pages.outputs.base_url }}
+      origin: ${{ steps.pages.outputs.origin }}
+      base_path: ${{ steps.pages.outputs.base_path }}
     env:
       DART_SASS_VERSION: 1.93.2
       GO_VERSION: 1.25.1
@@ -113,13 +115,20 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
       - name: Comment PR with preview URLs
-        if: ${{ github.event_name == 'pull_request' && steps.deployment.outputs.page_url }}
+        if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v7
+        env:
+          PREVIEW_ORIGIN: ${{ needs.build.outputs.origin }}
+          PREVIEW_BASE_PATH: ${{ needs.build.outputs.base_path }}
+          FALLBACK_URL: ${{ steps.deployment.outputs.page_url }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issue_number = context.issue.number;
-            const previewUrl = `${{ steps.deployment.outputs.page_url }}`;
+            const origin = process.env.PREVIEW_ORIGIN || '';
+            const basePath = process.env.PREVIEW_BASE_PATH || '';
+            const previewFromPages = origin && basePath ? `${origin}${basePath}` : '';
+            const previewUrl = previewFromPages || process.env.FALLBACK_URL || '';
             const deploysUrl = `${{ github.server_url }}/${{ github.repository }}/deployments/activity_log?environment=github-pages`;
             const body = [
               `🚀 Preview deployed: ${previewUrl}`,
