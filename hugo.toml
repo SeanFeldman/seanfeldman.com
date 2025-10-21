@@ -3,6 +3,9 @@ languageCode = 'en-us'
 title = 'Sean Feldman Blog'
 theme = 'github.com/HEIGE-PCloud/DoIt'
 
+[permalinks]
+posts = "/posts/:slug"
+
 [services]
     [service.Disqus]
         shortname = 'sean-feldman-blog'
