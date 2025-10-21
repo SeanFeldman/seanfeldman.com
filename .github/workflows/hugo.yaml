@@ -119,6 +119,8 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          preview: ${{ github.event_name == 'pull_request' }}
       - name: Comment PR with preview URLs
         if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v7
