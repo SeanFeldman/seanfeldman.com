@@ -98,6 +98,10 @@ jobs:
   deploy:
     # Deploy for pushes, and for PRs only when the PR comes from the same repo (not forks)
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    permissions:
+      contents: write   # needed to create commit comments
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -107,3 +111,16 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Post deployment comment
+        uses: actions/github-script@v7
+        env:
+          DEPLOY_URL: ${{ steps.deployment.outputs.page_url }}
+        with:
+          script: |
+            const url = process.env.DEPLOY_URL || 'https://seanfeldman.com/';
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `✅ Blog deployed successfully!\n\n🌐 Live site: ${url}`
+            });
