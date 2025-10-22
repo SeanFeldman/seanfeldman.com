@@ -1,0 +1,120 @@
+baseURL = 'https://seanfeldman.com/'
+languageCode = 'en-us'
+title = 'Sean Feldman Blog'
+theme = 'github.com/HEIGE-PCloud/DoIt'
+
+[permalinks]
+  posts = "/posts/:slug"
+
+[menu]
+  [[menu.main]]
+    identifier = "posts"
+    # you can add extra information before the name (HTML format is supported), such as icons
+    pre = ""
+    # you can add extra information after the name (HTML format is supported), such as icons
+    post = ""
+    name = "Posts"
+    url = "/posts/"
+    # title will be shown when you hover on this menu link
+    title = ""
+    weight = 1
+  [[menu.main]]
+    identifier = "tags"
+    pre = ""
+    post = ""
+    name = "Tags"
+    url = "/tags/"
+    title = ""
+    weight = 2
+  [[menu.main]]
+    identifier = "categories"
+    pre = ""
+    post = ""
+    name = "Categories"
+    url = "/categories/"
+    title = ""
+    weight = 3
+
+# Markup related configuration in Hugo
+[markup]
+  # Syntax Highlighting (https://gohugo.io/content-management/syntax-highlighting)
+  [markup.highlight]
+    # false is a necessary configuration (https://github.com/dillonzq/LoveIt/issues/158)
+    noClasses = false
+
+[home]
+  rss = 10
+  [home.profile]
+    enable = true
+    gravatarEmail = 'feldman.sean@gmail.com'
+    subtitle = 'Thoughts and code'
+    social = true
+
+[social]
+  Email = 'feldman.sean@gmail.com'
+  GitHub = 'SeanFeldman'
+  Twitter = '@sfeldman'
+  LinkedIn = 'feldmansean'
+
+[params.home.profile]
+  enable = true
+  # Gravatar Email for preferred avatar in home page
+  gravatarEmail = "feldman.sean@gmail.com"
+  # URL of avatar shown in home page
+  avatarURL = "/images/avatar.webp"
+  # URL the avatar links to
+  avatarLinkURL = ""
+
+# Social config about the author
+[params.social]
+  GitHub = "SeanFeldman"
+  Twitter = "@sfeldman"
+  LinkedIn = "feldmansean"
+
+[params.page.share]
+enable = true
+Twitter = true
+Facebook = false
+Linkedin = true
+Whatsapp = true
+Pinterest = false
+Tumblr = false
+HackerNews = false
+Reddit = false
+VK = false
+Buffer = false
+Xing = false
+Line = false
+Instapaper = false
+Pocket = false
+Digg = false
+Stumbleupon = false
+Flipboard = false
+Weibo = false
+Renren = false
+Myspace = false
+Blogger = false
+Baidu = false
+Odnoklassniki = false
+Evernote = false
+Skype = false
+Trello = false
+Mix = false
+Mastodon = true
+
+[services]
+  [service.Disqus]
+    shortname = 'sean-feldman-blog'
+
+[privacy]
+  [privacy.disqus]
+    disable = false
+
+# DoIt theme configuration: enable Disqus comments
+[params]
+  [params.page]
+    [params.page.comment]
+	  enable = true
+	    [params.page.comment.disqus]
+		  enable = true
+		  shortname = "sean-feldman-blog"
