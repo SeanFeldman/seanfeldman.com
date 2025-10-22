@@ -64,12 +64,15 @@ theme = 'DoIt'
   avatarURL = "/images/avatar.webp"
   # URL the avatar links to
   avatarLinkURL = ""
+  # Social links displayed on home page
+  social = true
 
 # Social config about the author
 [params.social]
+  Email = "feldman.sean@gmail.com"
   GitHub = "SeanFeldman"
-  Twitter = "@sfeldman"
-  LinkedIn = "feldmansean"
+  Twitter = "sfeldman"
+  Linkedin = "feldmansean"
 
 [params.page.share]
 enable = true
