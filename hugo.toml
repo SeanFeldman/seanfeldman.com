@@ -53,7 +53,7 @@ theme = 'github.com/HEIGE-PCloud/DoIt'
 [social]
   Email = 'feldman.sean@gmail.com'
   GitHub = 'SeanFeldman'
-  Twitter = '@sfeldman'
+  Twitter = 'sfeldman'
   LinkedIn = 'feldmansean'
 
 [params.home.profile]
@@ -68,7 +68,7 @@ theme = 'github.com/HEIGE-PCloud/DoIt'
 # Social config about the author
 [params.social]
   GitHub = "SeanFeldman"
-  Twitter = "@sfeldman"
+  Twitter = "sfeldman"
   LinkedIn = "feldmansean"
 
 [params.page.share]
