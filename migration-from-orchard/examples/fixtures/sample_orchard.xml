@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Orchard>
+  <Data>
+    <ContentItem>
+      <Id>123</Id>
+      <ContentType>BlogPost</ContentType>
+      <DisplayText>Sample Post</DisplayText>
+      <AutoroutePart>
+        <Path>sample-post</Path>
+      </AutoroutePart>
+      <BodyPart>
+        <Text>&lt;p&gt;Hello &lt;strong&gt;world&lt;/strong&gt;!&lt;/p&gt;</Text>
+      </BodyPart>
+      <CommonPart>
+        <Owner>admin</Owner>
+        <CreatedUtc>2020-01-02T03:04:05Z</CreatedUtc>
+        <Published>true</Published>
+      </CommonPart>
+      <TagsPart>
+        <Tags>
+          <Tag>orchard</Tag>
+          <Tag>export</Tag>
+        </Tags>
+      </TagsPart>
+    </ContentItem>
+  </Data>
+</Orchard>

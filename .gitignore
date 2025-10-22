@@ -6,3 +6,6 @@
 .hugo_build.lock
 /public/
 /resources/_gen/
+
+# Ignore generated output markdown for validations
+/migration-from-orchard/out/
