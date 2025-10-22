@@ -4,8 +4,9 @@ title = "Sean Feldman's Blog"
 theme = 'DoIt'
 
 # Site outputs: enable RSS feed generation for home and sections
+# JSON output is required for Fuse.js search
 [outputs]
-  home = ["HTML", "RSS"]
+  home = ["HTML", "RSS", "JSON"]
   section = ["HTML", "RSS"]
   taxonomy = ["HTML", "RSS"]
   taxonomyTerm = ["HTML"]
@@ -199,3 +200,32 @@ Mastodon = true
   hugo = false
   # Show a year range
   since = 2007
+
+# Search configuration
+[params.search]
+  enable = true
+  # type of search engine ("algolia", "fuse", "pagefind")
+  type = "fuse"
+  # max index length of the chunked content
+  contentLength = 4000
+  # placeholder of the search bar
+  placeholder = ""
+  # max number of results length
+  maxResultLength = 10
+  # snippet length of the result
+  snippetLength = 50
+  # HTML tag name of the highlight part in results
+  highlightTag = "em"
+  # whether to use the absolute URL based on the baseURL in search index
+  absoluteURL = false
+  [params.search.fuse]
+    # https://fusejs.io/api/options.html
+    isCaseSensitive = false
+    minMatchCharLength = 2
+    findAllMatches = false
+    location = 0
+    threshold = 0.3
+    distance = 100
+    ignoreLocation = true
+    useExtendedSearch = false
+    ignoreFieldNorm = false
