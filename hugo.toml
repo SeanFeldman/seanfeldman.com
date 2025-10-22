@@ -45,6 +45,11 @@ theme = 'DoIt'
 
 # Markup related configuration in Hugo
 [markup]
+  # Table of contents configuration
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 6
+    ordered = false
   # Syntax Highlighting (https://gohugo.io/content-management/syntax-highlighting)
   [markup.highlight]
     # false is a necessary configuration (https://github.com/dillonzq/LoveIt/issues/158)
@@ -146,6 +151,14 @@ Mastodon = true
     tileColor = "#da532c"
 
   [params.page]
+    [params.page.toc]
+      # Enable table of contents
+      enable = true
+      # Keep the static TOC in front of the post
+      keepStatic = false
+      # Make TOC auto-collapse/expand in sidebar
+      auto = true
+    
     [params.page.comment]
 	  enable = true
 	    [params.page.comment.disqus]
