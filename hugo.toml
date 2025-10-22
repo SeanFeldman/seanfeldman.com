@@ -1,7 +1,7 @@
 baseURL = 'https://seanfeldman.com/'
 languageCode = 'en-us'
 title = 'Sean Feldman Blog'
-theme = 'github.com/HEIGE-PCloud/DoIt'
+theme = 'DoIt'
 
 [permalinks]
   posts = "/posts/:slug"
