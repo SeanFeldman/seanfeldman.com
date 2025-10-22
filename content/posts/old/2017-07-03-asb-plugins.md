@@ -14,22 +14,21 @@ For a very long time Azure Service Bus client [WindowsAzure.ServiceBus/](https:/
 
 These are the hardships of the old client though. With the new client, [Microsoft.Azure.ServiceBus](https://www.nuget.org/packages/Microsoft.Azure.ServiceBus/) things are different. With support for extensibility, the new client offers a simple incoming and outgoing pipelines. These pipelines take plugins that have a relatively simple API but can help immensely with message customization when it's sent or received. This is what a [plugin skeleton](https://github.com/Azure/azure-service-bus-dotnet/blob/master/src/Microsoft.Azure.ServiceBus/Core/ServiceBusPlugin.cs) looks like (at the time of writing, this is still in preview):
 
-```
-public abstract class ServiceBusPlugin
-{
-  public abstract string Name { get; }
-  public virtual bool ShouldContinueOnException => false;
-  public virtual Task<Message> BeforeMessageSend(Message message)
-  {
-      return Task.FromResult(message);
-  }
-  public virtual Task<Message> AfterMessageReceive(Message message)
-  {
-      return Task.FromResult(message);
-  }
+```csharp
+public abstract class ServiceBusPlugin
+{
+  public abstract string Name { get; }
+  public virtual bool ShouldContinueOnException => false;
+  public virtual Task<Message> BeforeMessageSend(Message message)
+  {
+      return Task.FromResult(message);
+  }
+  public virtual Task<Message> AfterMessageReceive(Message message)
+  {
+      return Task.FromResult(message);
+  }
 }
 ```
-
 In the [previous post](https://weblogs.asp.net/sfeldman/hello-microsoft-azure-servicebus), I've already talked about [MessageIdPlugin](https://github.com/Azure/azure-service-bus-dotnet-plugins/blob/dev/src/Microsoft.Azure.ServiceBus.MessageIdPlugin/readme.md) and [KeyVaultPlugin](https://github.com/Azure/azure-service-bus-dotnet-plugins/blob/dev/src/Microsoft.Azure.ServiceBus.KeyVaultPlugin/readme.md). In this post, I'd like to extend the topic by demonstrating another power that plugins bring to the game.
 
 ## Sending large messages
@@ -50,41 +49,37 @@ To use the plugin, a connection string to Storage account is required. With Stor
 
 ### Configuration and registration
 
-```
-var sender = new MessageSender(connectionString, queueName);
-var config = new AzureStorageAttachmentConfiguration(storageConnectionString);
-var plugin = new AzureStorageAttachment(config);
+```csharp
+var sender = new MessageSender(connectionString, queueName);
+var config = new AzureStorageAttachmentConfiguration(storageConnectionString);
+var plugin = new AzureStorageAttachment(config);
 sender.RegisterPlugin(plugin);
 ```
-
 ### Sending
 
-```
-var payload = new MyMessage { ... }; 
-var serialized = JsonConvert.SerializeObject(payload);
-var payloadAsBytes = Encoding.UTF8.GetBytes(serialized);
+```csharp
+var payload = new MyMessage { ... };
+var serialized = JsonConvert.SerializeObject(payload);
+var payloadAsBytes = Encoding.UTF8.GetBytes(serialized);
 var message = new Message(payloadAsBytes);
 ```
-
 ### Receiving
 
-```
-var receiver = new MessageReceiver(connectionString, entityPath, ReceiveMode.ReceiveAndDelete);
-receiver.RegisterPlugin(plugin);
-var msg = await receiver.ReceiveAsync();
+```csharp
+var receiver = new MessageReceiver(connectionString, entityPath, ReceiveMode.ReceiveAndDelete);
+receiver.RegisterPlugin(plugin);
+var msg = await receiver.ReceiveAsync();
 // msg will contain the original payload
 ```
-
 Configuration applies the defaults, which [can be overriden](https://github.com/SeanFeldman/ServiceBus.AttachmentPlugin#configure-blobs-container-name).
 
 [Visual](https://aspblogs.blob.core.windows.net:443/media/sfeldman/2017/asb-plugins/flow.PNG) of a sample message sent with the plugin.
 
 ## Seeing is believing
 
-```
+```csharp
 Install-Package ServiceBus.AttachmentPlugin -Pre
 ```
-
 Found issues or have suggestions? Raise those [here](https://github.com/SeanFeldman/ServiceBus.AttachmentPlugin/issues).
 
 

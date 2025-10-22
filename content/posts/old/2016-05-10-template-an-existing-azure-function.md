@@ -13,8 +13,7 @@ Head to the SCM portal (kudu portal). If you functions project is called X, then
 
 Next, navigate to the console. In the console `xcopy` your existing function folder to a new one.
 
-```
+```csharp
 xcopy /E ExistingFunctionFolder d:\home\site\wwwroot\NewFunctionFolder\
 ```
-
 Et viola! Your new function based on an existing one will show up in the portal.

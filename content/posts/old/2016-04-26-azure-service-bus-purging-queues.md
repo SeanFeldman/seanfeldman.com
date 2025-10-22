@@ -10,11 +10,10 @@ author: Sean Feldman
 ---
 Testing code that involves queues always has some utility code that is responsible for test cleanup. The cleanup is often implemented as a queue purge operation. For example, MSMQ allows to delete all messages in a queue by calling a `Purge()` command on a queue.
 
-```
-MessageQueue queue = new MessageQueue(".\\exampleQueue");
+```csharp
+MessageQueue queue = new MessageQueue(".\\exampleQueue");
 queue.Purge();
 ```
-
 Simple. Convenient. Not possible with Azure Service Bus.
 
 There are a few options to handle situations when the purge operation is needed. None of those options is perfect, but is a workable solution until native implementation is provided (vote for the suggestion on [UserVoice][1]).
@@ -31,7 +30,7 @@ Batching will help with getting as many messages as possible in a single operati
 
 Not need to explain that async operations are much more preferred with IO-based operations. When receiving messages in batches, make sure to use `ReceiveBatchAsync()` and not its synchronous counterpart.
 
-```
+```csharp
 var mf = MessagingFactory.CreateFromConnectionString(connectionString);
 ```
 	var receiver = await mf.CreateMessageReceiverAsync("queue", ReceiveMode.ReceiveAndDelete);

@@ -40,38 +40,33 @@ Same as with order id. Combining all property values and assigning as `MessageId
 
 Size issue?! Yes. `BrokeredMessage.MessageId` is limited to 128 characters. Would that be a deal breaker if generated ID needs to be more than 128 characters? Not at all. As a matter of fact, the entire payload could be used for deduplication. Here's an example:
 
-```
-var payload = serializerOfYourChoice.Serialize(payloadObject);
-var msg1 = new BrokeredMessage(payload);
-msg1.MessageId = CreateDeterministicIdFromHash(payload);
-msg1.Label = "1st";
+```csharp
+var payload = serializerOfYourChoice.Serialize(payloadObject);
+var msg1 = new BrokeredMessage(payload);
+msg1.MessageId = CreateDeterministicIdFromHash(payload);
+msg1.Label = "1st";
 await sender.SendAsync(msg1).ConfigureAwait(false);
-```
-
-```
-var msg2 = new BrokeredMessage(payload);
-msg2.MessageId = CreateDeterministicIdFromHash(payload);
-msg2.Label = "2nd";
+var msg2 = new BrokeredMessage(payload);
+msg2.MessageId = CreateDeterministicIdFromHash(payload);
+msg2.Label = "2nd";
 await sender.SendAsync(msg2).ConfigureAwait(false);
 ```
-
 The sample creates a GUID like ID by making an object hash using serialized object. For example, using JSON.Net you could get the serialized object and pass it to `CreateGuidLikeIdFromHash` to provide the deterministic ID that is based on a hash. As result of this snippet, there will be only one message received when a queue has deduplication enabled. 
 
 `CreateGuidLikeIdFromHash`  method could be implemented in the following way:
 
-```
-static string CreateDeterministicIdFromHash(string input)
-{
-    var inputBytes = Encoding.Default.GetBytes(input);
-    // use MD5 hash to get a 16-byte hash of the string
-    using (var provider = new MD5CryptoServiceProvider())
-    {
-        var hashBytes = provider.ComputeHash(inputBytes);
-        return new Guid(hashBytes).ToString();
-    }
+```csharp
+static string CreateDeterministicIdFromHash(string input)
+{
+    var inputBytes = Encoding.Default.GetBytes(input);
+    // use MD5 hash to get a 16-byte hash of the string
+    using (var provider = new MD5CryptoServiceProvider())
+    {
+        var hashBytes = provider.ComputeHash(inputBytes);
+        return new Guid(hashBytes).ToString();
+    }
 }
 ```
-
 [**Update**: as Clemens Vasters [pointed out][2] correctly, MD5, or any other cryptography hashes, should not be used for non-cryptographic purposes. [Data.HashFunction library][3] offers number of non-cryptographic hashes that can be used instead.]
 
 Et voilà. Now you can leverage native ASB deduplication using your custom data from the message itself without unnecessary intermediaries or performance impact. 

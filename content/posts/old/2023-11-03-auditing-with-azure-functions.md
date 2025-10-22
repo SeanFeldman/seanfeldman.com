@@ -12,36 +12,31 @@ A successful message processing is not the only outcome that's required. More of
 
 With Azure Functions Isolated Worker SDK, this becomes an extremely easy feature to implement. You could implement it as a standalone middleware but I chose to combine it with the revoverability middleware to keep the picture complete.
 
-```
-public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
-{
-	try
-	{
+```csharp
+public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
+{
+	try
+	{
 	    await next(context);
-```
-
-```
-await Audit(message, context);
-	}
-	catch (AggregateException exception)
-	{
-	    // Recoverability, omitted for clarity
-	}
+        await Audit(message, context);
+	}
+	catch (AggregateException exception)
+	{
+	    // Recoverability, omitted for clarity
+	}
 }
 ```
-
 The implementation for auditing is just sending a message to the queue chosen to be the audit queue. Similar to the centralized error queue.
 
-```
-private async Task Audit(ServiceBusReceivedMessage message, FunctionContext context)
-{
-    var auditMessage = new ServiceBusMessage(message);
-    auditMessage.ApplicationProperties["Endpoint"] = context.FunctionDefinition.Name;
-    await using var serviceBusSender = serviceBusClient.CreateSender("audit");
-    await serviceBusSender.SendMessageAsync(auditMessage);
+```csharp
+private async Task Audit(ServiceBusReceivedMessage message, FunctionContext context)
+{
+    var auditMessage = new ServiceBusMessage(message);
+    auditMessage.ApplicationProperties["Endpoint"] = context.FunctionDefinition.Name;
+    await using var serviceBusSender = serviceBusClient.CreateSender("audit");
+    await serviceBusSender.SendMessageAsync(auditMessage);
 }
 ```
-
 Notice the custom header `"Endpoint"`. This is intentional to keep track of the endpoint/function that has successfully processed the message that got audited. While there is additional information that could be propagated with the audited message, this is enough for a basic audit trail.
 
 [1]: https://weblogs.asp.net/sfeldman/recoverability-with-azure-functions-delayed-retries

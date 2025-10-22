@@ -17,13 +17,12 @@ For a long time, I was using Storage Emulator to execute some verification tests
  - Needs to be installed. While it's not big of a deal, using something like PowerShell it can be download and installed swiftly. 
 <br>
 
-```
-$msiPath = "$($env:USERPROFILE)\MicrosoftAzureStorageEmulator.msi"
-        (New-Object Net.WebClient).DownloadFile('https://download.visualstudio.microsoft.com/download/pr/e9476781-1f65-40e4-b7fd-e6b49840c7de/7028682de076b2dbc1aa5f1e02ec420a/microsoftazurestorageemulator.msi', $msiPath)<br>
-cmd /c start /wait msiexec /i $msiPath /quiet<br>
+```csharp
+$msiPath = "$($env:USERPROFILE)\MicrosoftAzureStorageEmulator.msi"
+        (New-Object Net.WebClient).DownloadFile('https://download.visualstudio.microsoft.com/download/pr/e9476781-1f65-40e4-b7fd-e6b49840c7de/7028682de076b2dbc1aa5f1e02ec420a/microsoftazurestorageemulator.msi', $msiPath)<br>
+cmd /c start /wait msiexec /i $msiPath /quiet<br>
 del $msiPath
 ```
-
  - Requires Microsoft SQL Server 2012 Express LocalDB instance
  - Has [no support for HTTPS](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator#authenticating-requests-against-the-storage-emulator)
  - Is not cross-platform

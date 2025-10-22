@@ -24,88 +24,86 @@ A function is defined by a single `run.csx` default file. It can be more complex
 
 To provide 3rd party assemblies (NuGet and SendGrid APIs), nuget packages can be referenced and Azure Functions will restore those. References are defined in by adding the appropreate references in the `Project.json` file. Create one if it doesn't exist in the same folder for the function you're working on.
 
-```
-{
-  "frameworks": {
-    "net46":{
-      "dependencies": {
-        "NuGet.PackageManagement": "3.4.3",
-        "SendGrid": "6.3.4"
-      }
-    }
-   }
+```csharp
+{
+  "frameworks": {
+    "net46":{
+      "dependencies": {
+        "NuGet.PackageManagement": "3.4.3",
+        "SendGrid": "6.3.4"
+      }
+    }
+   }
 }
 ```
-
 Now the function itself.
 
-```
-using System;
-using System.Text;
-using NuGet;
-using SendGrid;
-using System.Net.Mail;
-public static async Task Run(TimerInfo myTimer, TraceWriter log)
-{
-    log.Info($"C# Timer trigger function executed at: {DateTime.Now}");    
-    var home = Environment.GetEnvironmentVariable("HOME");
-    var filePath  = Path.Combine(home, @"data\Functions\lastexecution.txt");
-    var lastScanDate = await ReadLastExecutionDate(filePath, log).ConfigureAwait(false);
-    var package = GetNugetPackagePublishedAfterLastScan(lastScanDate, log);
-	if(package == null)
-	    return;
-    await SendEmail(package, log).ConfigureAwait(false);    
-    await SaveLastExecutionDate(filePath).ConfigureAwait(false);
-}
-static async Task<DateTime> ReadLastExecutionDate(string filePath, TraceWriter log)
-{
-    using (var reader = File.OpenText(filePath))
-    {
-        var fileText = await reader.ReadToEndAsync();
-        log.Verbose(fileText);
-        return DateTime.Parse(fileText);
-    }
-}
-static Task SaveLastExecutionDate(string filePath)
-{
-    using (FileStream sourceStream = new FileStream(filePath, FileMode.Truncate, FileAccess.Write, FileShare.ReadWrite, 
-            bufferSize: 1024, useAsync: true))
-    {
-        var d = Encoding.Default.GetBytes(DateTime.UtcNow.ToString());
-        return sourceStream.WriteAsync(d, 0, d.Length);
-    };
-}
-static IPackage GetNugetPackagePublishedAfterLastScan(DateTime lastScan, TraceWriter log)
-{
-    var repo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
-	List<IPackage> packages = repo.FindPackagesById("WindowsAzure.ServiceBus").ToList();
-	var package = packages.Where(x => x.IsReleaseVersion() == true)
-		.OrderByDescending(x => x.Version)
-		.Where(x => x.Published > lastScan)
-		.FirstOrDefault();
-	if(package == null)
-	{
-	    log.Info("No updates."); 
-	}
-	else
-	{
-	    log.Verbose(($"{package?.Version}  {package?.Published?.ToUniversalTime()}"));
-	}
-	return package;
-}	
-static Task SendEmail(IPackage package, TraceWriter log)
-{
-    var apiKey = "[key]";
-	var transportWeb = new Web(apiKey);
-	SendGridMessage myMessage = new SendGridMessage();
-	myMessage.AddTo("[email]");
-	myMessage.From = new MailAddress("feldman.sean@gmail.com", "Sean Feldman");
-	myMessage.Subject = $"WindowsAzure.ServiceBus {package.Version} was released";
-	myMessage.Text = $"Release date: {package.Published}\n\n{package.ReleaseNotes}";
-	return transportWeb.DeliverAsync(myMessage);
+```csharp
+using System;
+using System.Text;
+using NuGet;
+using SendGrid;
+using System.Net.Mail;
+public static async Task Run(TimerInfo myTimer, TraceWriter log)
+{
+    log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
+    var home = Environment.GetEnvironmentVariable("HOME");
+    var filePath  = Path.Combine(home, @"data\Functions\lastexecution.txt");
+    var lastScanDate = await ReadLastExecutionDate(filePath, log).ConfigureAwait(false);
+    var package = GetNugetPackagePublishedAfterLastScan(lastScanDate, log);
+	if(package == null)
+	    return;
+    await SendEmail(package, log).ConfigureAwait(false);
+    await SaveLastExecutionDate(filePath).ConfigureAwait(false);
+}
+static async Task<DateTime> ReadLastExecutionDate(string filePath, TraceWriter log)
+{
+    using (var reader = File.OpenText(filePath))
+    {
+        var fileText = await reader.ReadToEndAsync();
+        log.Verbose(fileText);
+        return DateTime.Parse(fileText);
+    }
+}
+static Task SaveLastExecutionDate(string filePath)
+{
+    using (FileStream sourceStream = new FileStream(filePath, FileMode.Truncate, FileAccess.Write, FileShare.ReadWrite,
+            bufferSize: 1024, useAsync: true))
+    {
+        var d = Encoding.Default.GetBytes(DateTime.UtcNow.ToString());
+        return sourceStream.WriteAsync(d, 0, d.Length);
+    };
+}
+static IPackage GetNugetPackagePublishedAfterLastScan(DateTime lastScan, TraceWriter log)
+{
+    var repo = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
+	List<IPackage> packages = repo.FindPackagesById("WindowsAzure.ServiceBus").ToList();
+	var package = packages.Where(x => x.IsReleaseVersion() == true)
+		.OrderByDescending(x => x.Version)
+		.Where(x => x.Published > lastScan)
+		.FirstOrDefault();
+	if(package == null)
+	{
+	    log.Info("No updates.");
+	}
+	else
+	{
+	    log.Verbose(($"{package?.Version}  {package?.Published?.ToUniversalTime()}"));
+	}
+	return package;
+}
+static Task SendEmail(IPackage package, TraceWriter log)
+{
+    var apiKey = "[key]";
+	var transportWeb = new Web(apiKey);
+	SendGridMessage myMessage = new SendGridMessage();
+	myMessage.AddTo("[email]");
+	myMessage.From = new MailAddress("feldman.sean@gmail.com", "Sean Feldman");
+	myMessage.Subject = $"WindowsAzure.ServiceBus {package.Version} was released";
+	myMessage.Text = $"Release date: {package.Published}\n\n{package.ReleaseNotes}";
+	return transportWeb.DeliverAsync(myMessage);
 }
 ```
-
 Function is based on a time trigger, therefore schedule is set either on time span or a cron expression. 
 
 That's it. Zero deployment, a notification service will be executed every 24 hours, sending email if a new version of a package is released.

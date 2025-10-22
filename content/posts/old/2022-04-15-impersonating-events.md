@@ -26,18 +26,17 @@ But what if I have more than one event to notify about where I shouldn't have co
 
 The first handler, upon its completion, will dispatch a new event. We'll use a convention of `{OriginalMessageType}Completed`. In the case of `AgentReassigned`, the newly dispatched event will be `AgentAssignedCompleted`. But what we'll do is stamp the new message headers with the _original_ message type and set the payload to the original message payload.
 
-```
-var outgoingMessage = new ServiceBusMessage(BinaryData.FromObjectAsJson(message))
-{
-	ApplicationProperties =
-	{
-		{ "EventType", $"{nameof(ConsultantReassigned)}Completed" },
-		{ "OriginalEventType", typeof(ConsultantReassigned).FullName }
-	}
-};
+```csharp
+var outgoingMessage = new ServiceBusMessage(BinaryData.FromObjectAsJson(message))
+{
+	ApplicationProperties =
+	{
+		{ "EventType", $"{nameof(ConsultantReassigned)}Completed" },
+		{ "OriginalEventType", typeof(ConsultantReassigned).FullName }
+	}
+};
 await sender.SendMessageAsync(outgoingMessage);
 ```
-
 The subscription we'll create for the 2nd handler will subscribe to the `AgentAssignedCompleted` event type, using SQL filter `EventType='ConsultantReassignedCompleted'`. This will ensure that copies of the messages of `ConsultantReassignedCompleted` will be stored under the subscription.
 
 And here's the trick, we'll use SQL filter **action**to replace `EventType` of the message that will be given to the subscription if it matches the condition, back to the original message type using the following instruction: `SET EventType=OriginalEventType; REMOVE OriginalEventType;.` With this action, any message that has satisfied the SQL filter will have its header `EventType` modified to the header's value `OriginalEventType`, removing the temporary `OriginalEventType` after that.
@@ -50,13 +49,12 @@ When the 2nd handler receives messages from this subscription, the type of the m
 
 There are several ways. Manually, using a tool such as ServiceBus Explorer, or scripted using Az CLI or Bicep. Bicep seems to have a [bug](https://github.com/Azure/bicep/issues/6557), but [Az CLI](https://docs.microsoft.com/en-us/cli/azure/servicebus/topic/subscription/rule?view=azure-cli-latest#az-servicebus-topic-subscription-rule-create) works great. This is what it would look like:
 
-```
-az servicebus topic subscription rule create --resource-group 'MyGroup' --namespace-name 'MyNamespace'
-    --topic-name 'tva.events' --subscription-name 'Notifications' --name ConsultantReassignedCompleted
-    --filter-sql-expression="EventType='ConsultantReassignedCompleted'" 
+```csharp
+az servicebus topic subscription rule create --resource-group 'MyGroup' --namespace-name 'MyNamespace'
+    --topic-name 'tva.events' --subscription-name 'Notifications' --name ConsultantReassignedCompleted
+    --filter-sql-expression="EventType='ConsultantReassignedCompleted'"
     --action-sql-expression='SET EventType=OriginalEventType; REMOVE OriginalEventType;'
 ```
-
 ## Is this necessary?
 
 It really depends. You could create Additional `xxxxCompleted` types and duplicate all the properties from the original message types if you'd like. We can skip that and keep only the original events that matter, enabling ordered processing by tweaking the provisioned topology with event impersonation.

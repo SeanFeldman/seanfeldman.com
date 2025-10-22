@@ -27,32 +27,29 @@ A declarative binding allows to specify a binding to a queue or an HTTP request 
 
  1. Create a new function that is triggered by a Storage queue 
  2. Specify
-```
+```csharp
 function parameter name that will be used in code (myQueueItem)
 ```
  3. Specify storage account to be used (settings key that represents
-```
+```csharp
 storage account connection string)
 ```
  4. Specify queue to be monitored for
-```
+```csharp
 messages
 ```
-
 ![enter image description here][2]
 
 Once function created, you’ll have be able to replace its signature with an asynchronous version that will look like the following:
 
-```
+```csharp
 public static async Task Run(string myQueueItem, TraceWriter log)
 ```
-
 That’s it for the input. This will allow the function to receive notifications about new messages found on a queue and receive the content as a string parameter. Additionally, we could add declarative bindings for the standard properties. For this sample, I’ll add Id of the ASQ message.
 
-```
+```csharp
 public static async Task Run(string myQueueItem, string id, TraceWriter log)
 ```
-
 The objective is to turn the message into a blob file. This will require persisting the content to the storage account. A simple solution would be to specify the output declaratively by selecting an Azure Storage Blob as an output type and using a path with a unique {rand-guid} template (random GUID).
 
 ![enter image description here][3]
@@ -67,46 +64,45 @@ Let’s see the code and analyze it step by step.
 
 `#r "Newtonsoft.Json"`
 
-```
-using System;
-using System.Text;
-using System.IO;
-using Newtonsoft.Json;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host.Bindings.Runtime;
-static readonly string byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
-public static async Task Run(string myQueueItem, string id, Binder binder, TraceWriter log)
-{
-    log.Info($"C# Queue trigger function triggered");
-    log.Info($"Original ASQ message ID: {id}");
-    var value =myQueueItem.StartsWith(byteOrderMarkUtf8) ? (myQueueItem).Remove(0, byteOrderMarkUtf8.Length) : myQueueItem; 
-    var obj = JsonConvert.DeserializeObject<MessageWrapper>(value);
-    var endpointName = obj.Headers["NServiceBus.ProcessingEndpoint"];
-    var attributes = new Attribute[]
-    {
-        new BlobAttribute($"audits/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/{endpointName}/{id}.json"),
-        new StorageAccountAttribute("asqetl_STORAGE")
-    };
-    using (var writer = await binder.BindAsync<TextWriter>(attributes).ConfigureAwait(false))
-    {
-        writer.Write(myQueueItem);
-    }
-    log.Info($"Done ");
-}
-public class MessageWrapper
-{
-    public string IdForCorrelation { get; set; }
-    public string Id { get; set; }
-    public int MessageIntent { get; set; }
-    public string ReplyToAddress { get; set; }
-    public string TimeToBeReceived { get; set; }
-    public Dictionary<string, string> Headers { get; set; }
-    public string Body { get; set; }
-    public string CorrelationId { get; set; }
-    public bool Recoverable { get; set; }
+```csharp
+using System;
+using System.Text;
+using System.IO;
+using Newtonsoft.Json;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Host.Bindings.Runtime;
+static readonly string byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+public static async Task Run(string myQueueItem, string id, Binder binder, TraceWriter log)
+{
+    log.Info($"C# Queue trigger function triggered");
+    log.Info($"Original ASQ message ID: {id}");
+    var value =myQueueItem.StartsWith(byteOrderMarkUtf8) ? (myQueueItem).Remove(0, byteOrderMarkUtf8.Length) : myQueueItem;
+    var obj = JsonConvert.DeserializeObject<MessageWrapper>(value);
+    var endpointName = obj.Headers["NServiceBus.ProcessingEndpoint"];
+    var attributes = new Attribute[]
+    {
+        new BlobAttribute($"audits/{DateTime.UtcNow.ToString("yyyy-MM-dd")}/{endpointName}/{id}.json"),
+        new StorageAccountAttribute("asqetl_STORAGE")
+    };
+    using (var writer = await binder.BindAsync<TextWriter>(attributes).ConfigureAwait(false))
+    {
+        writer.Write(myQueueItem);
+    }
+    log.Info($"Done ");
+}
+public class MessageWrapper
+{
+    public string IdForCorrelation { get; set; }
+    public string Id { get; set; }
+    public int MessageIntent { get; set; }
+    public string ReplyToAddress { get; set; }
+    public string TimeToBeReceived { get; set; }
+    public Dictionary<string, string> Headers { get; set; }
+    public string Body { get; set; }
+    public string CorrelationId { get; set; }
+    public bool Recoverable { get; set; }
 }
 ```
-
 1.	I’ve modified the signature to inject a Binder into the method. Binder allows imperative bindings to be performed at run-time. In this case, specifying the output blob.
 2.	NServiceBus ASQ transport is encoding messages with a BOM (Byte Order Mark). Declared byteOrderMarkUtf8 variable is used to strip it out to persist message as raw JSON.
 3.	MessageWrapper class represents the message wrapper used by NServiceBus ASQ transport. Since native Storage Queues messages do not have headers, MessageWrapper is used to contain both headers and the payload. ["NServiceBus.ProcessingEndpoint" header]( https://docs.particular.net/nservicebus/messaging/headers#send-headers) will provide the information at what endpoint a given message was successfully processed.
@@ -115,10 +111,9 @@ public class MessageWrapper
 
 To validate the function is working, one of the NServiceBus [ASQ transport samples]( https://docs.particular.net/samples/azure/storage-queues/?version=ASQ_7) can be used.  Configure the sample to use the same storage account and execute it. Endpoint1 and Endpoint2 will process messages, but not emit any audits. To enable audits, the following configuration modification is required in Program.cs for each endpoint:
 
-```
+```csharp
 endpointConfiguration.AuditProcessedMessagesTo("audit");
 ```
-
 Once auditing is enabled, blob storage will start feeling up with any new audit messages emitted by the endpoints.
 
 ![enter image description here][4]

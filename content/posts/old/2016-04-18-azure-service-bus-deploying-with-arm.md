@@ -20,82 +20,75 @@ First, like many others, I have more than a single subscription. To be able to d
 
 Once you've been authenticated, the following will be presented
 
-```
-Environment           : AzureCloud
-Account               : your.email.address@domain.name
-TenantId              : yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy
-SubscriptionId        : xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```csharp
+Environment           : AzureCloud
+Account               : your.email.address@domain.name
+TenantId              : yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy
+SubscriptionId        : xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 CurrentStorageAccount :
 ```
-
 Next step is to select what subscription to use for deployment.
 
-```
+```csharp
 Set-AzureRmContext -SubscriptionId xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
-
 Once the operational context is set, a new resource group can be created. You can skip this test if you already have a resource group to use.
 
-```
+```csharp
 New-AzureRmResourceGroup -Name ASB-RG -Location "West US"
 ```
-
 The convention of `-RG` might look redundant here.What can I say, old habits die hard. Either way, the output of the command is worth evaluation.
 
-```
-ResourceGroupName : ASB-RG
-Location          : westus
-ProvisioningState : Succeeded
-Tags              :
+```csharp
+ResourceGroupName : ASB-RG
+Location          : westus
+ProvisioningState : Succeeded
+Tags              :
 ResourceId        : /subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/ASB-RG
 ```
-
 1. Resource group name is `ASB-RG`
 1. Location is West US region
 1. Resource ID include subscription ID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
 
 Final step is to create the needed resources (ASB namespace) and the entities. A few things to note. First, I'm deploying a template from a file and not a link, therefore `-TemplateFile` is used. Second, I'm giving deployment a name to read back the object, but it's really not necessary.
 
-```
+```csharp
 New-AzureRmResourceGroupDeployment -Name my-deployment -ResourceGroupName ASB-RG -TemplateFile C:\templates\asb.json
 ```
-
 It takes a while to provision a new namespace with the entities. Command will ask for the parameters we need to supply. It's possible to provide those via an external file, but I have skipped that part.
 
-```
-cmdlet New-AzureRmResourceGroupDeployment at command pipeline position 1
-Supply values for the following parameters:
-(Type !? for Help.)
-serviceBusNamespaceName: asb-rg-ns
-serviceBusTopicName: asb-rg-topic
+```csharp
+cmdlet New-AzureRmResourceGroupDeployment at command pipeline position 1
+Supply values for the following parameters:
+(Type !? for Help.)
+serviceBusNamespaceName: asb-rg-ns
+serviceBusTopicName: asb-rg-topic
 serviceBusSubscriptionName: asb-rg-sub
 ```
-
 The output after a while looks like the following:
 
-```
-DeploymentName          : my-deployment
-ResourceGroupName       : ASB-RG
-ProvisioningState       : Succeeded
-Timestamp               : 2016-04-18 04:07:10
-Mode                    : Incremental
-TemplateLink            :
-Parameters              :
-                          Name             Type                       Value
-                          ===============            =========================  ==========
-                          serviceBusNamespaceName    String                     asb-rg-ns
-                          serviceBusTopicName        String                     asb-rg-topic
-                          serviceBusSubscriptionName String                     asb-rg-sub
-                          serviceBusApiVersion       String                     2015-08-01
-Outputs                 :
-                          Name                          Type                       Value
-                          ===============               =========================  ==========
-                          namespaceConnectionString     String                     Endpoint=sb://asb-rg-ns.servicebus.windows.net/;SharedAccessKey
-                          Name=RootManageSharedAccessKey;SharedAccessKey=<shared-access-key>
-                          sharedAccessPolicyPrimaryKey  String                     <shared-access-primary-key>
+```csharp
+DeploymentName          : my-deployment
+ResourceGroupName       : ASB-RG
+ProvisioningState       : Succeeded
+Timestamp               : 2016-04-18 04:07:10
+Mode                    : Incremental
+TemplateLink            :
+Parameters              :
+                          Name             Type                       Value
+                          ===============            =========================  ==========
+                          serviceBusNamespaceName    String                     asb-rg-ns
+                          serviceBusTopicName        String                     asb-rg-topic
+                          serviceBusSubscriptionName String                     asb-rg-sub
+                          serviceBusApiVersion       String                     2015-08-01
+Outputs                 :
+                          Name                          Type                       Value
+                          ===============               =========================  ==========
+                          namespaceConnectionString     String                     Endpoint=sb://asb-rg-ns.servicebus.windows.net/;SharedAccessKey
+                          Name=RootManageSharedAccessKey;SharedAccessKey=<shared-access-key>
+                          sharedAccessPolicyPrimaryKey  String                     <shared-access-primary-key>
 DeploymentDebugLogLevel :
 ```
-
 Details of asb.json can be found on the Azure documentation site with [detailed explanation][3] about parameters and options.
 
 Should you wish to read more on deploying with ARM templates, [Using Azure PowerShell with Azure Resource Manager article][4] can provide good information.

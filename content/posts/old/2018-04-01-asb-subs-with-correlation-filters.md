@@ -29,10 +29,9 @@ Just as the name indicates, SQL filters allow SQL language-based expressions to 
 
 With SQL filters it’s possible to create very complex rules for filtering messages out. Keep in mind that the more complex these rules are, the higher performance tall will be on the broker will have to apply these rules to every message. An example of a SQL rule:
 
-```
+```csharp
 sys.Label LIKE '%bus%'` OR `user.tag IN ('queue', 'topic', 'subscription')
 ```
-
 ## Correlation filters
 
 Unlike Boolean and SQL filters, this group is used to perform matching against one or more user and system properties in a very efficient way. Paraphrasing [official documentation]( https://docs.microsoft.com/en-us/dotnet/api/microsoft.servicebus.messaging.correlationfilter):
@@ -48,28 +47,25 @@ The second constructor with a single `string` argument initiates a correlation f
 
 To specify user-defined properties for correlation filter, a property `Properties` of type ` IDictionary <string, object>` is exposed. Keys for this dictionary are the user-defined properties to look up on messages. Values associated with keys are the values to correlate on. Here’s an example.
 
-```
-var filter = new CorrelationFilter();
-filter.Label = "blah";
-filter.ReplyTo = "x";
-filter.Properties["prop1"] = "abc";
+```csharp
+var filter = new CorrelationFilter();
+filter.Label = "blah";
+filter.ReplyTo = "x";
+filter.Properties["prop1"] = "abc";
 filter.Properties["prop2"] = "xyz";
 ```
-
 Created filter will have the following criteria:
 
-```
+```csharp
 sys.ReplyTo = 'x' AND sys.Label = 'blah' AND prop1 = 'abc' AND prop2 = 'xyz'
 ```
-
 And you’ve guessed it right. When correlating on multiple properties, logical AND will be used so that all properties have to have the expected values for the filter to be evaluated as truthy.
 
 In case you wondered how user-defined properties are populated, here's an example:
 
-```
+```csharp
 message.Properties["prop1"] = "abc";
 ```
-
 ## Conclusions
 
 Filtering messages can be done in several ways. Evaluate what filter to create and don’t default to SQL filter just because it’s easier to create. If filters can be simple enough to be expressed with correlation, prefer `CorrelationFilter` over `SqlFilter`. And remember, no matter what filter is used, filters cannot evaluate message body, but you can always promote from message body to properties/headers.

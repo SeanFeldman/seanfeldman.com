@@ -21,11 +21,10 @@ To make processing simpler, I’ve extracted the logic for message conversion an
 
 To enable EventGrid message processing, NServiceBus endpoint configured to use Azure Storage Queues transport should invoke the following configuration API:
 
-```
-var transport = endpointConfiguration.UseTransport<AzureStorageQueueTransport>();
+```csharp
+var transport = endpointConfiguration.UseTransport<AzureStorageQueueTransport>();
 transport.EnableSupportForEventGridEvents();
 ```
-
 ## What Services support EventGrids events?
 
  - Resource Groups
@@ -39,44 +38,38 @@ transport.EnableSupportForEventGridEvents();
 
 ## Subscribing to Storage Blob events
 
-```
-storageid=$(az storage account show --name eventgridasq --resource-group EventGrid-ASQ-RG --query id --output tsv)
+```csharp
+storageid=$(az storage account show --name eventgridasq --resource-group EventGrid-ASQ-RG --query id --output tsv)
 queueid="$storageid/queueservices/default/queues/queue"
 ```
-
 Note: this is Bash script. For Windows AZ CLI the syntax is slightly different, `$storageid=(az storage...)`.
 
-```
-az eventgrid event-subscription create \
-  --resource-id $storageid \
-  --name asq-blob-subscription \
-  --endpoint-type storagequeue \
+```csharp
+az eventgrid event-subscription create \
+  --resource-id $storageid \
+  --name asq-blob-subscription \
+  --endpoint-type storagequeue \
   --endpoint $queueid
 ```
-
 Azure Event Grid event schema for Blob storage defined [here](https://docs.microsoft.com/en-us/azure/event-grid/event-schema-blob-storage) is defined in the package mentioned above and can be subscribed to using the standard NServiceBus syntax. Below is an example of handling Storage Blob `Microsoft.Storage.BlobCreated` event:
 
 
-```
-public class BlobCreatedHandler : IHandleMessages<BlobCreated>
-{
+```csharp
+public class BlobCreatedHandler : IHandleMessages<BlobCreated>
+{
   static ILog log = LogManager.GetLogger<BlobCreated>();
-```
-
-```
-public Task Handle(BlobCreated message, IMessageHandlerContext context)
-  {
-    log.Info($"EventGrid.eventType: {context.MessageHeaders[Headers.EnclosedMessageTypes]}");
-    log.Info($"URL: {message.Url}");
-    log.Info($"API: {message.Api}");
-    log.Info($"BlobType: {message.BlobType}");
-    log.Info($"ContentType: {message.ContentType}");
-    log.Info($"ContentLength: {message.ContentLength}");
-    return Task.CompletedTask;
-  }
+  public Task Handle(BlobCreated message, IMessageHandlerContext context)
+  {
+    log.Info($"EventGrid.eventType: {context.MessageHeaders[Headers.EnclosedMessageTypes]}");
+    log.Info($"URL: {message.Url}");
+    log.Info($"API: {message.Api}");
+    log.Info($"BlobType: {message.BlobType}");
+    log.Info($"ContentType: {message.ContentType}");
+    log.Info($"ContentLength: {message.ContentLength}");
+    return Task.CompletedTask;
+  }
 }
 ```
-
 Creating a blob with “This is a test.” content 
 
 <center>
@@ -112,19 +105,15 @@ Once a blob is deleted, `Microsoft.Storage.BlobDeleted` will be fired
 
 ## Processing Resource Group events
 
-```
-storageid=$(az storage account show --name eventgridasq --resource-group EventGrid-ASQ-RG --query id --output tsv)
+```csharp
+storageid=$(az storage account show --name eventgridasq --resource-group EventGrid-ASQ-RG --query id --output tsv)
 queueid="$storageid/queueservices/default/queues/queue"
-```
-
-```
-az eventgrid event-subscription create \
-  --resource-group EventGrid-ASQ-RG \
-  --name rg-subscription \
-  --endpoint-type storagequeue \
+az eventgrid event-subscription create \
+  --resource-group EventGrid-ASQ-RG \
+  --name rg-subscription \
+  --endpoint-type storagequeue \
   --endpoint $queueid
 ```
-
 ## The devil is in details
 
 Every service has nuances associated with the events it emits. Look into documentation to understand how those generated. For example, Service Bus will emit events per entity until there’s an active receiver or no receive operation happened for two minutes as per [documentation]( https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-to-event-grid-integration-concept).

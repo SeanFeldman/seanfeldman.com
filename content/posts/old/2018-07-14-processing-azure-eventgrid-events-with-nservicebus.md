@@ -31,26 +31,19 @@ Note: make sure your queue name will be NServiceBus endpoint’s input queue.
 
 To verify your code is working, the following snippet can be used to publish to the custom topic. Inspect Storage queue to find events stored as messages.
 
-```
-var topicEndpoint = "https://<custom-topic>.<region>-1.eventgrid.azure.net/api/events";
-var topicKey = "<topic-key>";
+```csharp
+var topicEndpoint = "https://<custom-topic>.<region>-1.eventgrid.azure.net/api/events";
+var topicKey = "<topic-key>";
 var topicHostname = new Uri(topicEndpoint).Host;
-```
-
-```
-var topicCredentials = new TopicCredentials(topicKey);
+var topicCredentials = new TopicCredentials(topicKey);
 var client = new EventGridClient(topicCredentials);
-```
-
-```
-await client.PublishEventsAsync(topicHostname, GetEventsList());
+await client.PublishEventsAsync(topicHostname, GetEventsList());
 Console.Write("Published events to Event Grid.");
 ```
-
 To create one or more events (EventGrid supports batches), a collection of `EventGridEvent` needs to be created. A single event has a well defined schema, where custom event data is stored as `Data` property and event type as `EventType` property.
 
-```
-new EventGridEvent
+```csharp
+new EventGridEvent
 {
 ```
 	  Id = Guid.NewGuid().ToString(),
@@ -62,10 +55,9 @@ new EventGridEvent
 	  EventTime = DateTime.Now,
 	  Subject = "Processing Azure Event Grid events with NServiceBus",
 	  DataVersion = "1.0"
-```
+```csharp
 });
 ```
-
 Storage queue should contain all published events
 
 ![enter image description here][4]
@@ -74,141 +66,101 @@ Storage queue should contain all published events
 
 NServiceBus can consume custom Storage Queue messages. EventGrid events can be treated as native integration messages. To enable this integration, a [custom envelope unwrapper]( https://docs.particular.net/transports/azure-storage-queues/configuration#custom-envelope-unwrapper) has to be registered.
 
-```
+```csharp
 var jsonSerializer = new Newtonsoft.Json.JsonSerializer();
-```
-
-```
-transport.UnwrapMessagesWith(cloudQueueMessage =>
-{
-	using (var stream = new MemoryStream(cloudQueueMessage.AsBytes))
-	using (var streamReader = new StreamReader(stream))
-	using (var textReader = new JsonTextReader(streamReader))
-	{
+transport.UnwrapMessagesWith(cloudQueueMessage =>
+{
+	using (var stream = new MemoryStream(cloudQueueMessage.AsBytes))
+	using (var streamReader = new StreamReader(stream))
+	using (var textReader = new JsonTextReader(streamReader))
+	{
 		var jObject = JObject.Load(textReader);
-```
-
-```
-using (var jsonReader = jObject.CreateReader())
-		{
-			//try deserialize to a NServiceBus envelope first
+		using (var jsonReader = jObject.CreateReader())
+		{
+			//try deserialize to a NServiceBus envelope first
 			var wrapper = jsonSerializer.Deserialize<MessageWrapper>(jsonReader);
-```
-
-```
-if (wrapper.MessageIntent != default)
-			{
-				//this was a envelope message
-				return wrapper;
-			}
+			if (wrapper.MessageIntent != default)
+			{
+				//this was a envelope message
+				return wrapper;
+			}
 		}
-```
-
-```
-//this was an EventGrid event
-		using (var jsonReader = jObject.CreateReader())
-		{
+		//this was an EventGrid event
+		using (var jsonReader = jObject.CreateReader())
+		{
   			var @event = jsonSerializer.Deserialize<EventGridEvent>(jsonReader);
-```
- 
-```
-var wrapper = new MessageWrapper
-			{
-				Id = @event.Id,
-				Headers = new Dictionary<string, string>
-				{
-					{ "NServiceBus.EnclosedMessageTypes", @event.EventType },
-					{ "NServiceBus.MessageIntent", "Publish" },
-					{ "EventGrid.topic", @event.Topic },
-					{ "EventGrid.subject", @event.Subject },
-					{ "EventGrid.eventTime", @event.EventTime.ToString("u") },
-					{ "EventGrid.dataVersion", @event.DataVersion },
-					{ "EventGrid.metadataVersion", @event.MetadataVersion },
-				},
-				Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(@event.Data)),
+			var wrapper = new MessageWrapper
+			{
+				Id = @event.Id,
+				Headers = new Dictionary<string, string>
+				{
+					{ "NServiceBus.EnclosedMessageTypes", @event.EventType },
+					{ "NServiceBus.MessageIntent", "Publish" },
+					{ "EventGrid.topic", @event.Topic },
+					{ "EventGrid.subject", @event.Subject },
+					{ "EventGrid.eventTime", @event.EventTime.ToString("u") },
+					{ "EventGrid.dataVersion", @event.DataVersion },
+					{ "EventGrid.metadataVersion", @event.MetadataVersion },
+				},
+				Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(@event.Data)),
 				MessageIntent = MessageIntentEnum.Publish
 ```
 		    	};
 		    	return wrapper;
 		    }
-```
-}
+```csharp
+}
 });
 ```
-
 To help NServiceBus understand what event type the message represents, a specific header `NServiceBus.EnclosedMessageTypes` needs to be assigned the value of the EventGrid event published. 
 
 Note: handled EventGrid events need to be declared in your NServiceBus using declarative or convention option.
 
-```
-public class BlogPostPublished : IEvent
-{
-    public string ItemUri { get; set; }
+```csharp
+public class BlogPostPublished : IEvent
+{
+    public string ItemUri { get; set; }
 }
 ```
-
 `EventGridEvent` is an EventGrid wrapper defined by the service schema
 
-```
-public class EventGridEvent
-{
-    [JsonProperty(PropertyName = "id")]
-    public string Id { get; set; }
-    [JsonProperty(PropertyName = "topic")]
-    public string Topic { get; set; }
-    [JsonProperty(PropertyName = "subject")]
+```csharp
+public class EventGridEvent
+{
+    [JsonProperty(PropertyName = "id")]
+    public string Id { get; set; }
+    [JsonProperty(PropertyName = "topic")]
+    public string Topic { get; set; }
+    [JsonProperty(PropertyName = "subject")]
     public string Subject { get; set; }
-```
-
-```
-[JsonProperty(PropertyName = "data")]
+    [JsonProperty(PropertyName = "data")]
     public object Data { get; set; }
-```
-
-```
-[JsonProperty(PropertyName = "eventType")]
+    [JsonProperty(PropertyName = "eventType")]
     public string EventType { get; set; }
-```
-
-```
-[JsonProperty(PropertyName = "eventTime")]
+    [JsonProperty(PropertyName = "eventTime")]
     public DateTime EventTime { get; set; }
-```
-
-```
-[JsonProperty(PropertyName = "metadataVersion")]
+    [JsonProperty(PropertyName = "metadataVersion")]
     public string MetadataVersion { get; set; }
-```
-
-```
-[JsonProperty(PropertyName = "dataVersion")]
-    public string DataVersion { get; set; }
+    [JsonProperty(PropertyName = "dataVersion")]
+    public string DataVersion { get; set; }
 }
 ```
-
 At this point, an event handler can be defined
 
-```
-public class BlogPostPublishedHandler : IHandleMessages<BlogPostPublished>
-{
+```csharp
+public class BlogPostPublishedHandler : IHandleMessages<BlogPostPublished>
+{
     static ILog log = LogManager.GetLogger<BlogPostPublishedHandler>();
-```
-
-```
-public Task Handle(BlogPostPublished message, IMessageHandlerContext context)
-    {
-        log.Info($"Received {nameof(BlogPostPublished)}: {message.ItemUri}");
-        log.Info($"Topic: {context.MessageHeaders["EventGrid.topic"]}");
-        log.Info($"Subject: {context.MessageHeaders["EventGrid.subject"]}");
+    public Task Handle(BlogPostPublished message, IMessageHandlerContext context)
+    {
+        log.Info($"Received {nameof(BlogPostPublished)}: {message.ItemUri}");
+        log.Info($"Topic: {context.MessageHeaders["EventGrid.topic"]}");
+        log.Info($"Subject: {context.MessageHeaders["EventGrid.subject"]}");
         log.Info($"Event time: {context.MessageHeaders["EventGrid.eventTime"]}");
-```
-
-```
-return Task.CompletedTask;
-    }
+        return Task.CompletedTask;
+    }
 }
 ```
-
 Resulting in
 
 <div>
@@ -222,32 +174,31 @@ Resulting in
 
 When a new event type is published, the endpoint will receive it and attempt to process. In case NServiceBus endpoint is not aware of the event type, it will end up in the error queue. This is caused by EventGrid subscription by default subscribing to all published events. To fix this, EventGrid subscription needs to be updated to receive only specific types.
 
-```
-az eventgrid event-subscription update \
---resource-id "/subscriptions/<subscription-id>/resourceGroups/eventgrid-asq-rg/providers/microsoft.eventgrid/topics/events" \
---name asq-subscription \
+```csharp
+az eventgrid event-subscription update \
+--resource-id "/subscriptions/<subscription-id>/resourceGroups/eventgrid-asq-rg/providers/microsoft.eventgrid/topics/events" \
+--name asq-subscription \
 --included-event-types BlogPostPublished
 ```
-
 Once the subscription is updated, the filter will be on and only specified event types (`BlogPostPusblished` in this case) will be passed on to the Storage queue.
 
-```
-{
-  "destination": {
-    "endpointType": "StorageQueue",
-    "queueName": "queue",
-    "resourceId": "/subscriptions/<subscription-id>/resourceGroups/EventGrid-ASQ-RG/providers/Microsoft.Storage/storageAccounts/eventgridasq"
-  },
-  "eventDeliverySchema": "InputEventSchema",
-  "filter": {
-    "includedEventTypes": [
-  "BlogPostPublished"
-    ],
-    "isSubjectCaseSensitive": null,
-    "subjectBeginsWith": "",
-    "subjectEndsWith": ""
-  },
-  …
+```csharp
+{
+  "destination": {
+    "endpointType": "StorageQueue",
+    "queueName": "queue",
+    "resourceId": "/subscriptions/<subscription-id>/resourceGroups/EventGrid-ASQ-RG/providers/Microsoft.Storage/storageAccounts/eventgridasq"
+  },
+  "eventDeliverySchema": "InputEventSchema",
+  "filter": {
+    "includedEventTypes": [
+  "BlogPostPublished"
+    ],
+    "isSubjectCaseSensitive": null,
+    "subjectBeginsWith": "",
+    "subjectEndsWith": ""
+  },
+  …
 }
 ```
 </div>

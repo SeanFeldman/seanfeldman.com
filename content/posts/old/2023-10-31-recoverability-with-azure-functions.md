@@ -34,71 +34,69 @@ Unlike [centralized dead-letter queue](https://weblogs.asp.net/sfeldman/centrali
 To implement recoverability, a Funcitons Isolated Worker SDK is required as it supports the concept of middleware (think pipeline). Below is a high-level implementation to elaborate on the approach. You'll need some package references, but the idea is what's important. We're getting closer!
 
 
-```
-public class Program
-{
-    public static void Main()
-    {
-        var host = new HostBuilder()
-            .ConfigureFunctionsWorkerDefaults(builder =>
-            {
-                builder.UseWhen<ServiceBusMiddleware>(Is.ServiceBusTrigger); // Up-vote https://github.com/Azure/azure-functions-dotnet-worker/issues/1999 😉
-            })
-            .ConfigureServices((builder, services) =>
-            {
-                var serviceBusConnectionString = Environment.GetEnvironmentVariable("AzureServiceBus");
-                if (string.IsNullOrEmpty(serviceBusConnectionString))
-                {
-                    throw new InvalidOperationException("Specify a valid AzureServiceBus connection string in the Azure Functions Settings or your local.settings.json file.");
-                }
-                // This can also be done with the AddAzureClients() API
-                services.AddSingleton(new ServiceBusClient(serviceBusConnectionString));
-            })
-            .Build();
-        host.Run();
+```csharp
+public class Program
+{
+    public static void Main()
+    {
+        var host = new HostBuilder()
+            .ConfigureFunctionsWorkerDefaults(builder =>
+            {
+                builder.UseWhen<ServiceBusMiddleware>(Is.ServiceBusTrigger); // Up-vote https://github.com/Azure/azure-functions-dotnet-worker/issues/1999 😉
+            })
+            .ConfigureServices((builder, services) =>
+            {
+                var serviceBusConnectionString = Environment.GetEnvironmentVariable("AzureServiceBus");
+                if (string.IsNullOrEmpty(serviceBusConnectionString))
+                {
+                    throw new InvalidOperationException("Specify a valid AzureServiceBus connection string in the Azure Functions Settings or your local.settings.json file.");
+                }
+                // This can also be done with the AddAzureClients() API
+                services.AddSingleton(new ServiceBusClient(serviceBusConnectionString));
+            })
+            .Build();
+        host.Run();
     }
 ```
-
 The main focus is the `ServiceBusMiddleware` class, where the recoverability logic will be found. In a few words, we'll try to execute the functions, `await next(context)` call. If it throws, function invocation has failed and will be retried. Except we'll intercept that, and based on how many retries we allow, we'll decide wherever to rethrow or move the message to the centralized error queue. Note that we don't actually move the message. Instead, we clone it, complete the original message by swallowing the exception and sending the clone to the error queue. On top of that, we'll add the exception details to the cloned message to allow easier troubleshooting by inspecting the message headers. This will help the prod-ops to understand better why a message has failed by looking at the exception stack trace and exception details. Message payload, along with the error, can also be very helpful in solving the issue. 
 
-```
-internal class ServiceBusMiddleware : IFunctionsWorkerMiddleware
-{
-    private readonly ILogger<ServiceBusMessage> logger;
-    private readonly ServiceBusClient serviceBusClient;
-    public ServiceBusMiddleware(ServiceBusClient serviceBusClient, ILogger<ServiceBusMessage> logger)
-    {
-        this.serviceBusClient = serviceBusClient;
-        this.logger           = logger;
-    }
-    public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
-    {
-        try
-        {
-            await next(context);
-        }
-        catch (AggregateException exception)
-        {
-            BindingMetadata meta = context.FunctionDefinition.InputBindings.FirstOrDefault(b => b.Value.Type == "serviceBusTrigger").Value;
-            var input = await context.BindInputAsync<ServiceBusReceivedMessage>(meta);
-            var message = input.Value ?? throw new Exception($"Failed to send message to error queue, message was null. Original exception: {exception.Message}", exception);
-            if (message.DeliveryCount <= 5)
-            {
-                logger.LogDebug("Failed processing message {MessageId} after {Attempt} time, will retry", message.MessageId, message.DeliveryCount);
-                throw;
-            }
-            // TODO: remove when fixed https://github.com/Azure/azure-functions-dotnet-worker/issues/993
-            var specificException = GetSpecificException(exception);
-            var failedMessage = message.CloneForError(context.FunctionDefinition.Name, specificException);
-            var sender = serviceBusClient.CreateSenderFor(Endpoint.Error);
-            await sender.SendMessageAsync(failedMessage);
-            logger.LogError("Message ID {MessageId} failed processing and was moved to the error queue", message.MessageId);
-        }
-    }
-    static Exception GetSpecificException(AggregateException exception) => exception.Flatten().InnerExceptions.FirstOrDefault()?.InnerException ?? exception;
+```csharp
+internal class ServiceBusMiddleware : IFunctionsWorkerMiddleware
+{
+    private readonly ILogger<ServiceBusMessage> logger;
+    private readonly ServiceBusClient serviceBusClient;
+    public ServiceBusMiddleware(ServiceBusClient serviceBusClient, ILogger<ServiceBusMessage> logger)
+    {
+        this.serviceBusClient = serviceBusClient;
+        this.logger           = logger;
+    }
+    public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
+    {
+        try
+        {
+            await next(context);
+        }
+        catch (AggregateException exception)
+        {
+            BindingMetadata meta = context.FunctionDefinition.InputBindings.FirstOrDefault(b => b.Value.Type == "serviceBusTrigger").Value;
+            var input = await context.BindInputAsync<ServiceBusReceivedMessage>(meta);
+            var message = input.Value ?? throw new Exception($"Failed to send message to error queue, message was null. Original exception: {exception.Message}", exception);
+            if (message.DeliveryCount <= 5)
+            {
+                logger.LogDebug("Failed processing message {MessageId} after {Attempt} time, will retry", message.MessageId, message.DeliveryCount);
+                throw;
+            }
+            // TODO: remove when fixed https://github.com/Azure/azure-functions-dotnet-worker/issues/993
+            var specificException = GetSpecificException(exception);
+            var failedMessage = message.CloneForError(context.FunctionDefinition.Name, specificException);
+            var sender = serviceBusClient.CreateSenderFor(Endpoint.Error);
+            await sender.SendMessageAsync(failedMessage);
+            logger.LogError("Message ID {MessageId} failed processing and was moved to the error queue", message.MessageId);
+        }
+    }
+    static Exception GetSpecificException(AggregateException exception) => exception.Flatten().InnerExceptions.FirstOrDefault()?.InnerException ?? exception;
 }
 ```
-
 What about Functions? That's the great part. Every Function triggered by Azure Service Bus messages will be covered. No more need to catch exceptions and handle those.
 
 ## Result

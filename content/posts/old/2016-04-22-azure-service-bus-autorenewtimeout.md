@@ -19,11 +19,10 @@ There are two options to address this:
 
 `BrokeredMessage` allows renewing an already obtained lock that was given when message was received.
 
-```
-var brokeredMessage = queueClient.Receive();
+```csharp
+var brokeredMessage = queueClient.Receive();
 brokeredMessage.RenewLock();
 ```
-
 It surely looks simple. What's not so trivial is the timing of when lock renewal should be issued. Not mention that lock renewal time management would pollute the code with an additional concern. Let's look at a better option.
 
 ### Automatic lock renewal
@@ -32,56 +31,46 @@ In one of the previous posts, I have covered the [OnMessage API][2]. One of the 
 
 Let's dive into a sample:
    
-```
-static async Task Go(NamespaceManager nsManager, MessagingFactory mf)
-{
-    var connectionString = Environment.GetEnvironmentVariable("ConnectionString");
-    var nsManager = NamespaceManager.CreateFromConnectionString(connectionString);
+```csharp
+static async Task Go(NamespaceManager nsManager, MessagingFactory mf)
+{
+    var connectionString = Environment.GetEnvironmentVariable("ConnectionString");
+    var nsManager = NamespaceManager.CreateFromConnectionString(connectionString);
     var mf = MessagingFactory.CreateFromConnectionString(connectionString);
-```
-
-```
-if (!await nsManager.QueueExistsAsync("test").ConfigureAwait(false))
-    {
-        var desc = new QueueDescription("test")
-        {
-            LockDuration = TimeSpan.FromSeconds(45),
-        };
-        await nsManager.CreateQueueAsync(desc).ConfigureAwait(false);
-    }
-    var msg1 = new BrokeredMessage(new string('A', 5));
-    msg1.MessageId = DateTime.Now.ToString();
-    var sender = await mf.CreateMessageSenderAsync("test").ConfigureAwait(false);
-    await sender.SendAsync(msg1).ConfigureAwait(false);
-    var receiver = await mf.CreateMessageReceiverAsync("test");
-    var options = new OnMessageOptions 
-    {
-        AutoComplete = false, // let us complete the message
-        AutoRenewTimeout = TimeSpan.FromMinutes(10)
-    };
-    //callback
-    receiver.OnMessageAsync(async (message) =>
-    {
-        var sw = new Stopwatch();
-        Console.WriteLine("Callback started for message id " + message.MessageId);
-        Console.WriteLine("delaying for 8 minutes");
-        await Task.Delay(TimeSpan.FromMinutes(8));
-        var body = message.GetBody<string>();
-        Console.WriteLine($"processing id: {message.MessageId} body: {body}");
+    if (!await nsManager.QueueExistsAsync("test").ConfigureAwait(false))
+    {
+        var desc = new QueueDescription("test")
+        {
+            LockDuration = TimeSpan.FromSeconds(45),
+        };
+        await nsManager.CreateQueueAsync(desc).ConfigureAwait(false);
+    }
+    var msg1 = new BrokeredMessage(new string('A', 5));
+    msg1.MessageId = DateTime.Now.ToString();
+    var sender = await mf.CreateMessageSenderAsync("test").ConfigureAwait(false);
+    await sender.SendAsync(msg1).ConfigureAwait(false);
+    var receiver = await mf.CreateMessageReceiverAsync("test");
+    var options = new OnMessageOptions
+    {
+        AutoComplete = false, // let us complete the message
+        AutoRenewTimeout = TimeSpan.FromMinutes(10)
+    };
+    //callback
+    receiver.OnMessageAsync(async (message) =>
+    {
+        var sw = new Stopwatch();
+        Console.WriteLine("Callback started for message id " + message.MessageId);
+        Console.WriteLine("delaying for 8 minutes");
+        await Task.Delay(TimeSpan.FromMinutes(8));
+        var body = message.GetBody<string>();
+        Console.WriteLine($"processing id: {message.MessageId} body: {body}");
         Console.WriteLine("delivery count: " + message.DeliveryCount);
-```
-
-```
-await message.CompleteAsync();
-```
-
-```
-Console.WriteLine("Callback stopped");
-    }, options);
-    Util.ReadLine();
+            await message.CompleteAsync();
+        Console.WriteLine("Callback stopped");
+    }, options);
+    Util.ReadLine();
 }
 ```
-
 For this test code, a queue called `test` with `LockDuration` 45 seconds is used. The message received in the callback is handled for over 5 minutes and completed after 8 minutes.
 
 Fantastic, we can obtain message lock for longer than 5 minutes! Just don't go crazy. You should strive to have shorter processing and not lock message for a long time. If you do, review what you're trying to do. Remember that processing that is stalled will be holding up the message until `AutoRenewTimeout` time is expired. Which at times is not a great idea.

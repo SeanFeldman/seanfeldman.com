@@ -19,36 +19,33 @@ Gladly, there’s an option of [Custom Checks][5]. These checks allow periodic e
 
 To implement a custom check, Custom Checks NuGet package needs to be a referenced. For NServiceBus version 6, the package is `ServiceControl.Plugin.Nsb6.CustomChecks`. With the package in place, plugin requires ServiceControl input queue.
 
-```
+```csharp
 endpointConfiguration.CustomCheckPlugin("particular.servicecontrol");
 ```
-
-
 And the check class itself:
 
-```
-public class MonitorDeadletterQueue : CustomCheck
-{
-    NamespaceManager namespaceManager;
-    const string endpointName = "Samples.Azure.ServiceBus.Endpoint2";
-    public MonitorDeadletterQueue() : base(id: $"Monitor {endpointName} DLQ", category: "Monitor DLQ", repeatAfter: TimeSpan.FromSeconds(10))
-    {
-        var connectionString = Environment.GetEnvironmentVariable("AzureServiceBus.ConnectionString");
-        namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
-    }
-    public override async Task<CheckResult> PerformCheck()
-    {
-        var queueDescription = await namespaceManager.GetQueueAsync(endpointName).ConfigureAwait(false);
-        var messageCountDetails = queueDescription.MessageCountDetails;
-        if (messageCountDetails.DeadLetterMessageCount > 0)
-        {
-            return CheckResult.Failed($"{messageCountDetails.DeadLetterMessageCount} dead-lettered messages in queue {endpointName}.");
-        }
-        return CheckResult.Pass;
-    }
+```csharp
+public class MonitorDeadletterQueue : CustomCheck
+{
+    NamespaceManager namespaceManager;
+    const string endpointName = "Samples.Azure.ServiceBus.Endpoint2";
+    public MonitorDeadletterQueue() : base(id: $"Monitor {endpointName} DLQ", category: "Monitor DLQ", repeatAfter: TimeSpan.FromSeconds(10))
+    {
+        var connectionString = Environment.GetEnvironmentVariable("AzureServiceBus.ConnectionString");
+        namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
+    }
+    public override async Task<CheckResult> PerformCheck()
+    {
+        var queueDescription = await namespaceManager.GetQueueAsync(endpointName).ConfigureAwait(false);
+        var messageCountDetails = queueDescription.MessageCountDetails;
+        if (messageCountDetails.DeadLetterMessageCount > 0)
+        {
+            return CheckResult.Failed($"{messageCountDetails.DeadLetterMessageCount} dead-lettered messages in queue {endpointName}.");
+        }
+        return CheckResult.Pass;
+    }
 }
 ```
-
 Once implemented, DLQ custom check periodically executes and provides the status. As long as there are no dead-lettered messages, there will be no alerts.
 
 ![enter image description here][6]

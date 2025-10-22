@@ -12,11 +12,10 @@ author: Sean Feldman
 
 Occasionally, there's a need to send messages to a party that should not have access to the blob storage for attachments. For that, Azure Storage service supports blobs with SAS URIs. It enables blob retrieval without the need in storage account. Starting from version 1.1.0 of the ServiceBus.AttachmentPlugin, you can send messages w/o exposing storage account connection string. Receivers will only need to know and specify the message property used to identify blob [SAS URI][2].
 
-```
-new AzureStorageAttachmentConfiguration(storageConnectionString)
+```csharp
+new AzureStorageAttachmentConfiguration(storageConnectionString)
      .WithSasUri(messagePropertyToIdentifySasUri: "sender-provided-sas-uri-property-name");
 ```
-
 Et voilà! Message is sent without storage being exposed. 
 ![ASB message][3]
 

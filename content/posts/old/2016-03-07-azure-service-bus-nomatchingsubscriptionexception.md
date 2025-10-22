@@ -20,14 +20,12 @@ For most scenarios this is working fine, and that is the default behavior for Az
 
 To ensure that there are subscribers for a topic, ASB provides a flag on topic, `EnableFilteringMessagesBeforePublishing`. Setting this flag to `true` will make sure that if there are no subscriptions for topic, a `NoMatchingSubscriptionException` exception will be thrown on the client sending an event.
 
-```
-var topicDescription = new TopicDescription(topicPath)
-{
-  EnableFilteringMessagesBeforePublishing = true
+```csharp
+var topicDescription = new TopicDescription(topicPath)
+{
+  EnableFilteringMessagesBeforePublishing = true
 };
 ```
-
-
 Client code will be responsible for handling this exception. Therefore, think twice if that is a desired behavior on the sender side. If it is, then make sure to deal with the exception.
 
 	var topicClient = TopicClient.CreateFromConnectionString(connectionString, topicPath);
@@ -46,6 +44,5 @@ Running this code will result in the following message being logged (IDs and tim
 ```
 There is no matching subscription found for the message with MessageId '47eda34d2a764b76b8363b7d85463b24'. TrackingId:aa0d3da1-9e75-478b-ae8f-cd60d195ed8b_G15_B9,TimeStamp:3/7/2016 5:28:38 AM
 ```
-
 [1]: https://aspblogs.blob.core.windows.net:443/media/sfeldman/2016/topic-subscription.png
 [2]: https://aspblogs.blob.core.windows.net:443/media/sfeldman/2016/topic-subscription-empty.png

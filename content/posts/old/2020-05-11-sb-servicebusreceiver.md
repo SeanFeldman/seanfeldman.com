@@ -37,26 +37,21 @@ So, assuming there are messages waiting to be received, how to receive those?
 
 As always, we need a Service Bus client to create a receiver. The receiver can also take an optional options parameter, used to specify receive mode and custom prefetch count.
 
-```
-await using var client = new ServiceBusClient(connectionString, options);
-var receiveOptions = new ServiceBusReceiverOptions
-{
-	PrefetchCount = 0,
-	ReceiveMode = ReceiveMode.PeekLock
+```csharp
+await using var client = new ServiceBusClient(connectionString, options);
+var receiveOptions = new ServiceBusReceiverOptions
+{
+	PrefetchCount = 0,
+	ReceiveMode = ReceiveMode.PeekLock
 };
-```
-	
-```
 await using var receiver = client.CreateReceiver("myqueue", receiveOptions);
 ```
-
 Once we've got the receiver, we can request a single message or multiple messages
 
-```
-ServiceBusReceivedMessage message = await receiver.ReceiveAsync(cancellationToken);
+```csharp
+ServiceBusReceivedMessage message = await receiver.ReceiveAsync(cancellationToken);
 IList<ServiceBusReceivedMessage> messages = await receiver.ReceiveBatchAsync(maxMessages, cancellationToken);
 ```
-
 Note that `ReceiveBatchAsync()` method implies there's a batch received, in reality it's a best-effort operation to retrieve up-to `maxMessages` requested and not exactly that number of messages.
 
 And another great addition in Track 2 is support for `CancellationToken` by all vital methods.

@@ -28,12 +28,10 @@ The first step is to provide MyGet webhook with the URL to post notifications to
 
 Once webhook is configured, it can be tested. MyGet allows to "ping" webhook with a test dummy JSON payload to mimic an event that would trigger webhooks.
 
-```
-{"Identifier":"a835cebf-28e3-4f0a-9b2a-c163d18e281a","Username":"highcoconsulting",
+```csharp
+{"Identifier":"a835cebf-28e3-4f0a-9b2a-c163d18e281a","Username":"highcoconsulting",
  "When":"2017-03-12T20:03:22.9159969Z","PayloadType":"PingWebHookEventPayloadV1","Payload":{}}
 ```
-
-
 There's only one problem. MyGet feed sends notifications for any package found in the feed. It doesn't differentiate between versions either. That makes a requirement a bit more challenging. In a scenario like this Azure Functions can help to implement custom logic required to narrow notifications down.
 
 **Azure Function**
@@ -42,31 +40,27 @@ Azure Function could be just filtering out the calls by MyGet and forward the fi
 
 Create a function under "API & Webhooks" category (a generic webhook function). Since we've specified for MyGet to send data in JSON format, we can safely deserialize the payload into a dynamic object.
 
-```
-var jsonContent = await req.Content.ReadAsStringAsync().ConfigureAwait(false);
+```csharp
+var jsonContent = await req.Content.ReadAsStringAsync().ConfigureAwait(false);
 dynamic data = JsonConvert.DeserializeObject(jsonContent);
 ```
-
 Next is to determine the event type and filter out anything that is not "package added" event.
 
-```
+```csharp
 if (data?.PayloadType != null && data.PayloadType == "PackageAddedWebHookEventPayloadV1")
 ```
-
 Note that each MyGet webhook event has an exact payload type.
 
 Next is to peek into payload to detect the package name. Remember, the scenario was only supposed to notify a specific package (let's assume it's called "PackageX").
 
-```
+```csharp
 if  (data?.Payload?.PackageIdentifier == "PackageX")
 ```
-
 If the package identifier is right, then the version retrieval is what's next
 
-```
+```csharp
 if (IsPrereleasedVersion(data?.Payload?.PackageVersion))
 ```
-
 In case the version is matching the criteria of a pre-released version, notification can take place. Et voilà!
 
 Knock knock. Who's there? A notification!

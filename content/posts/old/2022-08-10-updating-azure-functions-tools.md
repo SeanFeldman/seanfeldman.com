@@ -14,26 +14,24 @@ Azure Functions Tools is at the heart of providing local development for Azure F
 
 Normally, VS and Rider do it automatically. Azure Functions Tools feed (https://functionscdn.azureedge.net/public/cli-feed-v4.json) stored at `%LocalAppData%\AzureFunctionsTools` has a JSON feed file, `feed-v<sequence-number>.json`, that is periodically updated. This file points to all the necessary information, including the latest version for the version of the function (v4 in my case).
 
-```
-"v4": {
-  "release": "4.20.0",
-  "releaseQuality": "GA",
-  "hidden": false
+```csharp
+"v4": {
+  "release": "4.20.0",
+  "releaseQuality": "GA",
+  "hidden": false
 },
 ```
-
 Release points at the Core Tools version
 
-```
-"coreTools": [
-    {
-      "OS": "Linux",
-      "Architecture": "x64",
-      "downloadLink": "https://functionscdn.azureedge.net/public/4.0.4704/Azure.Functions.Cli.linux-x64.4.0.4704.zip",
-      //...
+```csharp
+"coreTools": [
+    {
+      "OS": "Linux",
+      "Architecture": "x64",
+      "downloadLink": "https://functionscdn.azureedge.net/public/4.0.4704/Azure.Functions.Cli.linux-x64.4.0.4704.zip",
+      //...
     },
 ```
-
 When running your Functions project and noticing that the version is falling behind, there are a few things to check:
 
 1. The feed file. It could be that the feed is stale.

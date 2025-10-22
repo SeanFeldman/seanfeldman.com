@@ -24,36 +24,34 @@ This doesn't mean you absolutely must follow this recommendation. What if your b
 
 This is where [Blob Lifecycle Management Policies][2] are so handy. For example, let's say I'd like to reduce the cost of keeping blobs from day one but have the option to access those. I.e. not fully archived. The following policy would help with that by moving all blobs (including the existing ones) to the new Cold tier right away (some delay is expected as Storage service runs this not in real-time).
 
-```
-{
-  "rules": [
-    {
-      "enabled": true,
-      "name": "To-Cold",
-      "type": "Lifecycle",
-      "definition": {
-        "actions": {
-          "baseBlob": {
-            "tierToCold": {
-              "daysAfterModificationGreaterThan": 0
-            }
-          }
-        },
-        "filters": {
-          "blobTypes": [
-            "blockBlob"
-          ],
-          "prefixMatch": [
-            "masters/"
-          ]
-        }
-      }
-    }
-  ]
+```csharp
+{
+  "rules": [
+    {
+      "enabled": true,
+      "name": "To-Cold",
+      "type": "Lifecycle",
+      "definition": {
+        "actions": {
+          "baseBlob": {
+            "tierToCold": {
+              "daysAfterModificationGreaterThan": 0
+            }
+          }
+        },
+        "filters": {
+          "blobTypes": [
+            "blockBlob"
+          ],
+          "prefixMatch": [
+            "masters/"
+          ]
+        }
+      }
+    }
+  ]
 }
 ```
-
-
 This will allow much lower storage costs. Remember, there will be higher access and transaction costs when blobs are accessed. The difference is that these blobs will be available **immediately** and not **eventually**, as they would be with the Archived tier.
 
 [1]: https://learn.microsoft.com/en-us/azure/storage/blobs/access-tiers-overview#summary-of-access-tier-options

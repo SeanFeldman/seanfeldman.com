@@ -18,7 +18,7 @@ It means up to 192KB for the payload. For the most scenarios, 192KB is a lot of 
 [Premium tier](https://azure.microsoft.com/en-us/documentation/articles/service-bus-premium-messaging/) was added to handle addresses scale, performance, and availability. Now it can also handle messages large than 1MB. To be more specific, up to 1MB (according to the tests I've done).
 
    
-```
+```csharp
 var namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
 ```
 	var queueName = "test";
@@ -34,7 +34,7 @@ var namespaceManager = NamespaceManager.CreateFromConnectionString(connectionStr
 	var factory = await MessagingFactory.CreateAsync(namespaceManager.Address, namespaceManager.Settings.TokenProvider);
 	var sender = await factory.CreateMessageSenderAsync(queueName);
 
-```
+```csharp
 // send a payload of 512KB
 ```
 	var msg1 = new BrokeredMessage(new string('A', 512 * 1024));

@@ -23,24 +23,20 @@ When calling OnMessage, the client starts an internal message pump that continuo
 
 Equipped with this options, creation of a message pump is a breeze:
 
-```
-var receiver = await messageFactory.CreateMessageReceiverAsync("test");
-var options = new OnMessageOptions 
-{
-  AutoComplete = true,
-  AutoRenewTimeout = TimeSpan.FromMinutes(1), // for lock duration 30 secs
-  MaxConcurrentCalls = concurrencyLevel
+```csharp
+var receiver = await messageFactory.CreateMessageReceiverAsync("test");
+var options = new OnMessageOptions
+{
+  AutoComplete = true,
+  AutoRenewTimeout = TimeSpan.FromMinutes(1), // for lock duration 30 secs
+  MaxConcurrentCalls = concurrencyLevel
 };
-```
-
-```
-// callback
-receiver.OnMessageAsync(async (message) =>
-{
-  // processing message
+// callback
+receiver.OnMessageAsync(async (message) =>
+{
+  // processing message
 }, options);
 ```
-
 What's the benefit of this approach:
 
  1. No need to worry about creating the pump

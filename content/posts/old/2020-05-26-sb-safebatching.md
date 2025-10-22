@@ -29,12 +29,11 @@ Table of contents
 
 In one of the previous posts, [Sending ServiceBusMessage(s)][6] I've mentioned the option to send a single message using `SendAsync()` API. Sometimes, sending a single message is not enough and multiple messages need to be sent. The same method provides an overload to send a collection of messages.
 
-```
-IEnumerable<ServiceBusMessage> messages = new 
-List<messages>{ ... };
+```csharp
+IEnumerable<ServiceBusMessage> messages = new
+List<messages>{ ... };
 await sender.SendAsync(messages, cancellationToken);
 ```
-
 This method is great when messages are pre-created and sent in a single operation. It's subject to a single message size restriction but other than that, it's straight forward. Except it's not.
 
 Consider the following scenario: you've created multiple messages and about to send those, but as you do so, `MessageSizeExceededException` exception is thrown. Why is that? That's due to the fact that each message is smaller than the maximum message size. But combined together, multiple messages can exceed that limit and there's no way to validate the total size until an attempt to send those to the broker is made. And that's far from optimal. This is especially problematic when handling a continuous stream of data that needs to be converted to messages and sent out. How to know how messages would be within the right size boundaries? What if there's an outlier causing an assumed batch size to be invalidated?
@@ -56,35 +55,31 @@ Wait, is that all to it? Yes. That's all. And the good news, track 2 SDK already
 
 First step is to create a sender. A sender is necessary not only to dispatch a batch of messages, but also to create the batch.
 
-```
-await using var client = new ServiceBusClient(connectionString, options);
+```csharp
+await using var client = new ServiceBusClient(connectionString, options);
 await using var sender = client.CreateSender("myqueue");
 ```
-
 The next step is to define batch creation options. Currently it only supports `MaxSizeInBytes`, which is necessary if you'd like to control the batch maximum size. If omitted, the maximum message size for the namespace tier/SKU will be used.
 
-```
-var batchOptions = new CreateBatchOptions
-{
-	MaxSizeInBytes = 100
+```csharp
+var batchOptions = new CreateBatchOptions
+{
+	MaxSizeInBytes = 100
 };
 ```
-
 With the options and sender, we can create a batch
 
-```
+```csharp
 using var batch = await sender.CreateBatchAsync(batchOptions, cancellationToken);
 ```
-
 Note that `ServiceBusMessageBatch` is `IDisposable` and should be disposed of after used up.
 
 Adding messages to the batch is done in a controlled manner, using `TryAdd(message)` method. Try-add is a well-established pattern to attempt an operation and indicate wherever it succeeded or not without a failure. The operation adds the message and returns `true` if the message's addition does not surpass the maximum batch size. Otherwise, `false` is returned and the message is not added to the batch, leaving it for the next batch. E.g.:
-```
-batch.TryAdd(message1);
-batch.TryAdd(message2);
+```csharp
+batch.TryAdd(message1);
+batch.TryAdd(message2);
 batch.TryAdd(message3);
 ```
-
 `ServiceBusMessageBatch` also exposes the following properties to query it's size:
 
  1. Count - number of messages in a batch
@@ -93,10 +88,9 @@ batch.TryAdd(message3);
 
 And last but not the least, sending the batch
 
-```
+```csharp
 await sender.SendAsync(batch, cancellationToken);
 ```
-
 ## Conclusion
 
 This small but extremely powerful feature solves the problem of unexpected surprises when trying to send a collection of messages to the broker. By using safe batching API, there's no more gambling wherever the send operation will succeed or fail.

@@ -10,10 +10,9 @@ I tend to keep connection strings, security tokens, and other secrets in the env
 
 Usually, I'd be doing Computer --> Properties --> Advanced System Properties to get where I need. When RDPed into a VM or a Cloud Service instance that's just slow. Luckily, there's a way to get to the same place much faster.
 
-```
-Win-R (to open a run command window)
+```csharp
+Win-R (to open a run command window)
 sysdm.cpl ,3
 ```
-
 And done. Works like a charm. No more clicks and navigates in a slow worker role instance.
 Happy fast environment variables editing!

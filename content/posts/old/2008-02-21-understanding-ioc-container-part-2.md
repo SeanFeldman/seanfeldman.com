@@ -42,26 +42,18 @@ namespace Core.IoC
   {
 ```
 <span class="kwrd">private</span> <span class="kwrd">readonly</span> <span class="kwrd">string</span> filename;
-```
-```
 <span class="kwrd">public</span> XmlConfiguration() : <span class="kwrd">this</span>(<span class="str">&quot;Container.xml&quot;</span>)
 {
 }
-```
-```
 <span class="kwrd">public</span> XmlConfiguration(<span class="kwrd">string</span> filename)
 {
   <span class="kwrd">this</span>.filename = filename;
 }
-```
-```
 <span class="kwrd">public</span> Dictionary&lt;Type, Type&gt; GetAllRegistrations()
 {
   Dictionary&lt;Type, Type&gt; result = <span class="kwrd">new</span> Dictionary&lt;Type, Type&gt;();
   <span class="kwrd">string</span> fileWithPath = GetPathAndName();
-```
-```
-<span class="kwrd">if</span> (File.Exists(fileWithPath))
+  <span class="kwrd">if</span> (File.Exists(fileWithPath))
   {
     XmlReader reader = XmlTextReader.Create(fileWithPath);
     reader.MoveToContent();
@@ -77,12 +69,8 @@ namespace Core.IoC
       }
     }
   }
-```
-```
-<span class="kwrd">return</span> result;
+  <span class="kwrd">return</span> result;
 }
-```
-```
 <span class="kwrd">private</span> Type BuildTypeFromAssemblyAndTypeName(<span class="kwrd">string</span> fullTypeName)
 {
   <span class="kwrd">int</span> commaIndex = fullTypeName.IndexOf(<span class="str">&quot;,&quot;</span>);
@@ -90,8 +78,6 @@ namespace Core.IoC
   <span class="kwrd">string</span> assemblyName = fullTypeName.Substring(commaIndex + 1).Trim();
   <span class="kwrd">return</span> Assembly.Load(assemblyName).GetType(typeName, <span class="kwrd">false</span>, <span class="kwrd">false</span>);
 }
-```
-```
 <span class="kwrd">private</span> <span class="kwrd">string</span> GetPathAndName()
 {
   <span class="kwrd">string</span>[] split =
@@ -117,11 +103,7 @@ namespace Core.IoC
   {
 ```
 <span class="kwrd">public</span> <span class="kwrd">static</span> <span class="kwrd">readonly</span> IContainer Instance = <span class="kwrd">new</span> Container();
-```
-```
 <span class="kwrd">private</span> <span class="kwrd">readonly</span> Dictionary&lt;Type, Type&gt; container;
-```
-```
 <span class="kwrd">private</span> Container() : <span class="kwrd">this</span>(<span class="kwrd">new</span> XmlConfiguration())
 {
 }
@@ -130,29 +112,21 @@ namespace Core.IoC
 ```
 {
   container = <span class="kwrd">new</span> Dictionary&lt;Type, Type&gt;();
-```
-```
-<span class="kwrd">foreach</span> (KeyValuePair&lt;Type, Type&gt; pair <span class="kwrd">in</span> 
+  <span class="kwrd">foreach</span> (KeyValuePair&lt;Type, Type&gt; pair <span class="kwrd">in</span>
                                 xmlConfiguration.GetAllRegistrations())
   {
     AddImplemeterTypeForContractType(pair.Key, pair.Value);
   }
 }</strong>
-```
-```
 <span class="kwrd">public</span> <span class="kwrd">void</span> AddImplementerFor&lt;ContractType&gt;(Type implementer)
 {
   AddImplemeterTypeForContractType(<span class="kwrd">typeof</span> (ContractType), implementer);
 }
-```
-```
-<span class="kwrd">private</span> <span class="kwrd">void</span> AddImplemeterTypeForContractType(Type contractType, 
+<span class="kwrd">private</span> <span class="kwrd">void</span> AddImplemeterTypeForContractType(Type contractType,
                                               Type implementerType)
 {
   container.Add(contractType, implementerType);
 }
-```
-```
 <span class="kwrd">public</span> ContractType GetImplementerOf&lt;ContractType&gt;()
 {
   <span class="kwrd">return</span> (ContractType) Activator.CreateInstance(

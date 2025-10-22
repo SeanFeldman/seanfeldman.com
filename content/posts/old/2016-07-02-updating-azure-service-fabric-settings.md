@@ -12,25 +12,23 @@ Coming from the world of web applications where configuration file update is a m
 
 Versioning is done on the package level with multiple components that need to be packages. Each package represents an Azure Service Fabric Application. An application consists of services. Both Application and services have manifest files.
 
-```
-Manifirst For     File Name                           
-Application       ApplicationManifest.xml 
+```csharp
+Manifirst For     File Name
+Application       ApplicationManifest.xml
 Service           ServiceManifest.xml*
 ```
-
 \*Manifest file per service
 
 Assuming there's a default Config configuration, the folder `Config` will contain `Settings.xml` configuration file under service(s) you're interested in upgrading configuration for. Note that you can have multiple configurations files. For this post, I'm using a single one called `Config`. Original content of the file:
 
-```
-<?xml version="1.0" encoding="utf-8" ?>
-<Settings xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/2011/01/fabric">
-  <Section Name="MyConfigSection">
-    <Parameter Name="MyParameter" Value="OriginalValue" />
-  </Section>
+```csharp
+<?xml version="1.0" encoding="utf-8" ?>
+<Settings xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <Section Name="MyConfigSection">
+    <Parameter Name="MyParameter" Value="OriginalValue" />
+  </Section>
 </Settings>
 ```
-
 To make an update, first, the original application has to be deployed. There are two options:
 1. Deploying using Visual Studio (F5 will work as well).
 2. Deploying with PowerShell.
@@ -43,10 +41,9 @@ To make an update, first, the original application has to be deployed. There are
  4. New-ServiceFabricApplication -ApplicationName fabric://SFDeploymentTest -ApplicationTypeName SFDeploymentTestType -ApplicationTypeVersion 1.0.0
 
 *To find out the image store connection string for a dev cluster, navigate to http://localhost:19080/Explorer/index.html#/tab/manifest and select ClusterManifest > FabricSettings > Section Name="Management" > Parameter Name="ImageStoreConnectionString".
-```
+```csharp
 The default value is file:C:\SfDevCluster\Data\ImageStoreShare*
 ```
-
 Now comes the interesting part, upgrading the settings package only. To achieve that, the settings only package needs to be created first. The original application & service versions were 1.0.0. Even though it's just a configuration package, it still has to be versioned as a new version of application and service (which contains the configuration). Therefore application and the service will get a new version (I chose it to be 3.0.0 for the post). Make sure to update the following:
 
 **ApplicationManifest.xml** 
@@ -65,7 +62,7 @@ Make sure you package only contains the mentioned files, plus the Config folder 
 With a new package named `SFDeploymentTestV2`, the update deployment goes as the following:
 
  1. Copy-ServiceFabricApplicationPackage -ApplicationPackagePath package_location\pkg\SFDeploymentTestV3 -ImageStoreConnectionString file:C:\SfDevCluster\Data\ImageStoreShare -ApplicationPac
-```
+```csharp
 kagePathInImageStore SFDeploymentTestV3
 ```
  2. Register-ServiceFabricApplicationType -ApplicationPathInImageStore SFDeploymentTestV3
@@ -76,7 +73,7 @@ A few seconds after deployment is kicked off, the old code get the new setting v
 ![enter image description here][1]
 
 If you need to clean up your cluster, here's what I'm using. 
-```
+```csharp
 
 ```
  1. Remove-ServiceFabricService -ServiceName fabric:/SFDeploymentTest/StatelessSvc -Force

@@ -31,15 +31,14 @@ With this information, let's start putting the pieces needed for the whole thing
 
 As there might be one or more logical endpoints, the hard-coding queue name as it was done in the previous post is not ideal. An alternative would be to reflect the endpoint's name (queue name) at runtime when the Function App is bootstrapping everything.
 
-```
-var attribute = Assembly.GetExecutingAssembly().GetTypes()
-        .SelectMany(t => t.GetMethods())
-        .Where(m => m.GetCustomAttribute<FunctionNameAttribute>(false) != null)
-        .SelectMany(m => m.GetParameters())
-        .SelectMany(p => p.GetCustomAttributes<ServiceBusTriggerAttribute>(false))
+```csharp
+var attribute = Assembly.GetExecutingAssembly().GetTypes()
+        .SelectMany(t => t.GetMethods())
+        .Where(m => m.GetCustomAttribute<FunctionNameAttribute>(false) != null)
+        .SelectMany(m => m.GetParameters())
+        .SelectMany(p => p.GetCustomAttributes<ServiceBusTriggerAttribute>(false))
         .FirstOrDefault();
 ```
-
 With this code, we'll discover all `ServiceBusTriggerAttribute` applied to Azure Service Bus triggered functions. For each of these attributes, we'll have to 
 
 1. Create a queue if it doesn't exist
@@ -51,103 +50,73 @@ The caveat is that a subscription can only be created when a topic is found. The
 
 Here's the helper method we'd be using:
 
-```
-static async Task CreateTopologyWithReflection(IConfiguration configuration, string topicName = "bundle-1", string auditQueue = "audit", string errorQueue = "error")
-{
-    var connectionString = configuration.GetValue<string>("AzureWebJobsServiceBus");
+```csharp
+static async Task CreateTopologyWithReflection(IConfiguration configuration, string topicName = "bundle-1", string auditQueue = "audit", string errorQueue = "error")
+{
+    var connectionString = configuration.GetValue<string>("AzureWebJobsServiceBus");
     var managementClient = new ManagementClient(connectionString);
-```
-
-```
-var attribute = Assembly.GetExecutingAssembly().GetTypes()
-        .SelectMany(t => t.GetMethods())
-        .Where(m => m.GetCustomAttribute<FunctionNameAttribute>(false) != null)
-        .SelectMany(m => m.GetParameters())
-        .SelectMany(p => p.GetCustomAttributes<ServiceBusTriggerAttribute>(false))
+    var attribute = Assembly.GetExecutingAssembly().GetTypes()
+        .SelectMany(t => t.GetMethods())
+        .Where(m => m.GetCustomAttribute<FunctionNameAttribute>(false) != null)
+        .SelectMany(m => m.GetParameters())
+        .SelectMany(p => p.GetCustomAttributes<ServiceBusTriggerAttribute>(false))
         .FirstOrDefault();
-```
-
-```
-if (attribute == null)
-    {
-        throw new Exception("No endpoint was found");
+    if (attribute == null)
+    {
+        throw new Exception("No endpoint was found");
     }
-```
-
-```
-// there are endpoints, create a topic
-    if (!await managementClient.TopicExistsAsync(topicName))
-    {
-        await managementClient.CreateTopicAsync(topicName);
+    // there are endpoints, create a topic
+    if (!await managementClient.TopicExistsAsync(topicName))
+    {
+        await managementClient.CreateTopicAsync(topicName);
     }
-```
-
-```
-var endpointQueueName = attributes.First().QueueName;
-```
-
-```
-if (!await managementClient.QueueExistsAsync(endpointQueueName))
-    {
-        await managementClient.CreateQueueAsync(endpointQueueName);
+    var endpointQueueName = attributes.First().QueueName;
+    if (!await managementClient.QueueExistsAsync(endpointQueueName))
+    {
+        await managementClient.CreateQueueAsync(endpointQueueName);
     }
-```
-
-```
-if (!await managementClient.SubscriptionExistsAsync(topicName, endpointQueueName))
-    {
-        var subscriptionDescription = new SubscriptionDescription(topicName, endpointQueueName)
-        {
-            ForwardTo = endpointQueueName,
-            UserMetadata = $"Events {endpointQueueName} subscribed to"
-        };
-        var ruleDescription = new RuleDescription
-        {
-            Filter = new FalseFilter()
-        };
-        await managementClient.CreateSubscriptionAsync(subscriptionDescription, ruleDescription);
+    if (!await managementClient.SubscriptionExistsAsync(topicName, endpointQueueName))
+    {
+        var subscriptionDescription = new SubscriptionDescription(topicName, endpointQueueName)
+        {
+            ForwardTo = endpointQueueName,
+            UserMetadata = $"Events {endpointQueueName} subscribed to"
+        };
+        var ruleDescription = new RuleDescription
+        {
+            Filter = new FalseFilter()
+        };
+        await managementClient.CreateSubscriptionAsync(subscriptionDescription, ruleDescription);
     }
-```
-
-```
-if (!await managementClient.QueueExistsAsync(auditQueue))
-    {
-        await managementClient.CreateQueueAsync(auditQueue);
+    if (!await managementClient.QueueExistsAsync(auditQueue))
+    {
+        await managementClient.CreateQueueAsync(auditQueue);
     }
-```
-
-```
-if (!await managementClient.QueueExistsAsync(errorQueue))
-    {
-        await managementClient.CreateQueueAsync(errorQueue);
-    }
+    if (!await managementClient.QueueExistsAsync(errorQueue))
+    {
+        await managementClient.CreateQueueAsync(errorQueue);
+    }
 }
 ```
-
 Next, this helper method needs to be involved in the Startup class:
 
 
-```
-[assembly: FunctionsStartup(typeof(Startup))]
-public class Startup : FunctionsStartup
-{
-    public override void Configure(IFunctionsHostBuilder builder)
-    {      
+```csharp
+[assembly: FunctionsStartup(typeof(Startup))]
+public class Startup : FunctionsStartup
+{
+    public override void Configure(IFunctionsHostBuilder builder)
+    {
         CreateTopology(builder.GetContext().Configuration).GetAwaiter().GetResult();
-```
-
-```
-builder.UseNServiceBus(() =>
-        {
-          var configuration = new ServiceBusTriggeredEndpointConfiguration(AzureServiceBusTriggerFunction.EndpointName);
-          configuration.Transport.SubscriptionRuleNamingConvention(type => type.Name);
-          return configuration;
-        });
-    }
+        builder.UseNServiceBus(() =>
+        {
+          var configuration = new ServiceBusTriggeredEndpointConfiguration(AzureServiceBusTriggerFunction.EndpointName);
+          configuration.Transport.SubscriptionRuleNamingConvention(type => type.Name);
+          return configuration;
+        });
+    }
 }
 ```
-
-
 In my test solutions, I've defined an endpoint named `ASBEndpoint` (`AzureServiceBusTriggerFunction.EndpointName` is assigned the name). Once Azure Function hosting the endpoint is deployed, the following topology is created:
 
 ![topology][4]
@@ -160,32 +129,22 @@ with the correct forwarding to the input queue
 
 In the endpoint, I've added an event and event handler.
 
-```
+```csharp
 public class SimpleEvent : IEvent { }
-```
-
-```
-public class SimpleEventHandler : IHandleMessages<SimpleEvent>
-{
+public class SimpleEventHandler : IHandleMessages<SimpleEvent>
+{
     readonly ILogger<SimpleEvent> logger;
-```
-
-```
-public SimpleEventHandler(ILogger<SimpleEvent> logger)
-    {
-        this.logger = logger;
+    public SimpleEventHandler(ILogger<SimpleEvent> logger)
+    {
+        this.logger = logger;
     }
-```
-
-```
-public Task Handle(SimpleEvent message, IMessageHandlerContext context)
-    {
-        logger.LogInformation($"{nameof(SimpleEventHandler)} invoked");
-        return Task.CompletedTask;
-    }
+    public Task Handle(SimpleEvent message, IMessageHandlerContext context)
+    {
+        logger.LogInformation($"{nameof(SimpleEventHandler)} invoked");
+        return Task.CompletedTask;
+    }
 }
 ```
-
 NServiceBus automatically picks up and subscribes to all the events it finds handlers for. The subscription is expressed as a rule for each event. But this only happens when an endpoint is activated. This is not the case with message triggered Function endpoint. Luckily, there's a trick with `TimerTrigger` we can apply.
 
 ## Timer trigger trick
@@ -194,39 +153,31 @@ Normally, `TimerTirgger` is executed periodically using a schedule defined using
 
 Control message definition:
 
-```
+```csharp
 public class ForceAutoSubscription : IMessage { }
 ```
-
 Timer function:
 
-```
-public class TimerFunc
-{
+```csharp
+public class TimerFunc
+{
     readonly IFunctionEndpoint functionEndpoint;
-```
-
-```
-public TimerFunc(IFunctionEndpoint functionEndpoint)
-    {
-        this.functionEndpoint = functionEndpoint;
+    public TimerFunc(IFunctionEndpoint functionEndpoint)
+    {
+        this.functionEndpoint = functionEndpoint;
     }
-```
-
-```
-[FunctionName("TimerFunc")]
-    public async Task Run([TimerTrigger("* * * 1 1 *", RunOnStartup = true)]TimerInfo myTimer,
-        ILogger logger, ExecutionContext executionContext)
-    {
-        var sendOptions = new SendOptions();
-        sendOptions.SetHeader(Headers.ControlMessageHeader, bool.TrueString);
-        sendOptions.SetHeader(Headers.MessageIntent, MessageIntentEnum.Send.ToString());
-        sendOptions.RouteToThisEndpoint();
-        await functionEndpoint.Send(new ForceAutoSubscription(), sendOptions, executionContext, logger);
-    }
+    [FunctionName("TimerFunc")]
+    public async Task Run([TimerTrigger("* * * 1 1 *", RunOnStartup = true)]TimerInfo myTimer,
+        ILogger logger, ExecutionContext executionContext)
+    {
+        var sendOptions = new SendOptions();
+        sendOptions.SetHeader(Headers.ControlMessageHeader, bool.TrueString);
+        sendOptions.SetHeader(Headers.MessageIntent, MessageIntentEnum.Send.ToString());
+        sendOptions.RouteToThisEndpoint();
+        await functionEndpoint.Send(new ForceAutoSubscription(), sendOptions, executionContext, logger);
+    }
 }
 ```
-
 Note: `ForceAutoSubscription` is a control message and will neither require a message handler to be defined nor will it cause recoverability to be executed.
 
 The final result is what we needed. The endpoint is subscribed to `SimpleEvent`, and it's part of the topology. This means there's a rule under the endpoint's subscription.

@@ -14,9 +14,8 @@ After scratching my head, I couldn't think of anything other than a wrong versio
 
 Either way, to resolve the mystery and identify the version of the *actually* deployed assembly, here's a trivial code to run.
 
-```
-var type = typeof(SomeClass)
+```csharp
+var type = typeof(SomeClass)
 logger.Log(FileVersionInfo.GetVersionInfo(type.Assembly.Location).ProductVersion);
 ```
-
 I'm still not sure how did that happen, but looks like CSes packaging/deployment can be affected by the cache.

@@ -17,18 +17,17 @@ But what happens when a function needs to be executed on demand? For example, du
 
 That's possible with the `TimerTrigger` that accepts an additional parameter, `RunOnStartup`. Assign it a value of `true`, and the function will be executed when the Function App starts. You might want to wrap it with `#if DEBUG` to ensure it gets executed upon each deployment or restarting a Function/Function App in production.
 
-```
-[FunctionName(nameof(MyTimerTrigger))]
-public async Task RunAsync([TimerTrigger("0 0 */12 * * *"
-#if DEBUG
-  , RunOnStartup = true
-#endif
-)] TimerInfo myTimer, ExecutionContext executionContext)
-{
- // function code
+```csharp
+[FunctionName(nameof(MyTimerTrigger))]
+public async Task RunAsync([TimerTrigger("0 0 */12 * * *"
+#if DEBUG
+  , RunOnStartup = true
+#endif
+)] TimerInfo myTimer, ExecutionContext executionContext)
+{
+ // function code
 }
 ```
-
 That's great, but what if I need to force the function to execute not right away? For example, my function executes every 12 hours (`"0 0 */12 * * *"`), and I need to force it to run earlier than that?
 
 One way is to use the CRON expression from a configuration, update the configuration and restart the Function. But that's clunky and inconvenient. A better way is to force the function to execute by making a request through the administrative API.

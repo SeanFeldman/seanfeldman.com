@@ -18,8 +18,8 @@ A sample mapping file would look like this:
 <?xml version="1.0"?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2"
 ```
-<span class="attr">auto-import</span><span class="kwrd">=&quot;true&quot;</span> 
-               <span class="attr">assembly</span><span class="kwrd">=&quot;Example.Domain&quot;</span> 
+<span class="attr">auto-import</span><span class="kwrd">=&quot;true&quot;</span>
+               <span class="attr">assembly</span><span class="kwrd">=&quot;Example.Domain&quot;</span>
                <span class="attr">namespace</span><span class="kwrd">=&quot;Example.Domain.Mappings&quot;</span><span class="kwrd">&gt;</span>
 ```
 <class name="Message" table="Messages">

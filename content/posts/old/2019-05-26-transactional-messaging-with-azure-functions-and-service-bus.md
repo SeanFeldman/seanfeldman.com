@@ -22,23 +22,21 @@ Triggers and output bindings can be of different types. For example, a trigger c
 
 First, what's a typical function with Service Bus input and output would look like?
 
-```
-public static class ServiceBusTriggeredFunction
-{
-    [FunctionName("queue-in")] 
-    public static async Task Run(
-        [ServiceBusTrigger("queue-in", Connection = "ConnectionString")]Message message,
-        [ServiceBus("queue-out", Connection = "ConnectionString")]IAsyncCollector<string> collector,
-        ILogger logger)
-    {
-        logger.LogInformation("Sending a message out");
-        await collector.AddAsync($"Processed message with ID {message.MessageId}");
-        logger.LogInformation("Done");
-    }
+```csharp
+public static class ServiceBusTriggeredFunction
+{
+    [FunctionName("queue-in")]
+    public static async Task Run(
+        [ServiceBusTrigger("queue-in", Connection = "ConnectionString")]Message message,
+        [ServiceBus("queue-out", Connection = "ConnectionString")]IAsyncCollector<string> collector,
+        ILogger logger)
+    {
+        logger.LogInformation("Sending a message out");
+        await collector.AddAsync($"Processed message with ID {message.MessageId}");
+        logger.LogInformation("Done");
+    }
 }
 ```
-
-
 So what's the problem?
 
 Most of the time, this design is working just fine. But sometimes, there are issues. One of those issues are those pesky intermittent failures. For example, the incoming message that couldn't be completed. Looking at the sample above, the collector is given a string, which is turned into a message that is immediately dispatched. 
@@ -75,41 +73,28 @@ It would work if the Service Bus trigger and output binding would share the same
 
 Gladly, there's a way. Any function can be injected with additional dependencies SDK can supply. For Service Bus trigger it's the [message metadata][7], a.k.a properties or headers. There's an additional, undocumented option. The `MessageReceiver` used to retrieve the incoming message is also available to be injected in the function. A true hidden gem! Message receiver contains the connection string, which is necessary to create a message sender that would participate in the transaction. With that, the function will be able to send the message and it won't be dispatched to the output queue unless the incoming message is successfully completed. 
 
-```
-public static class AsbConnectedFunction
-{
-    [FunctionName("queue-in")]
-    public static async Task Run(
-        [ServiceBusTrigger("queue-in", Connection = "ConnectionString")]Message message,
-        ILogger logger,
-        MessageReceiver messageReceiver)
-    {
-        using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew, TransactionScopeAsyncFlowOption.Enabled))
-        {
+```csharp
+public static class AsbConnectedFunction
+{
+    [FunctionName("queue-in")]
+    public static async Task Run(
+        [ServiceBusTrigger("queue-in", Connection = "ConnectionString")]Message message,
+        ILogger logger,
+        MessageReceiver messageReceiver)
+    {
+        using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew, TransactionScopeAsyncFlowOption.Enabled))
+        {
             var messageSender = new MessageSender(messageReceiver.ServiceBusConnection, "queue-out", "queue-in");
-```
-
-```
-var outgoingMessage = new Message(Encoding.UTF8.GetBytes($"Processed message with ID {message.MessageId}"));
-```
-
-```
-logger.LogInformation("Sending a message out");
-            await messageSender.SendAsync(outgoingMessage);
+            var outgoingMessage = new Message(Encoding.UTF8.GetBytes($"Processed message with ID {message.MessageId}"));
+            logger.LogInformation("Sending a message out");
+            await messageSender.SendAsync(outgoingMessage);
             logger.LogInformation("Done");
-```
-
-```
-await messageReceiver.CompleteAsync(message.SystemProperties.LockToken);
-```
-
-```
-scope.Complete();
-        }
-    }
+            await messageReceiver.CompleteAsync(message.SystemProperties.LockToken);
+            scope.Complete();
+        }
+    }
 }
 ```
-
 Note: completing manually a message in the function will cause function host to throw an exception when it tries to do the same. 
 
 ![exception][9]
@@ -132,7 +117,7 @@ That's a powerful option that is missing from Azure Functions when working with 
 
 Transactional message processing with Service Bus in Functions is a great hidden feature. To my personal taste, the need to manually create a sender and wrap the logic in a transaction scope is clunky and less than optimal. I would rather like to see the code less about the infrastructure and the inner workings of Service Bus and more about business. Imagine function code being expressed with POCOs and solely focus on the business logic in the following way:
 
-```
+```csharp
 public class GenericAsyncHandler : IHandleMessages<RegisterOrder>
 ```
 	{

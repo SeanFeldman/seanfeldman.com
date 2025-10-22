@@ -28,71 +28,69 @@ Whenever all immediate retries are exhausted, a message should go back to the qu
 The incoming failing message will be cloned. And when cloned, we'll add a header, let's say `"Error.DelayedRetries"`. And each time we want to increase the number of attempted delayed retries, we'll read the original incoming message's header and increase it by one for the cloned message. The first time, there will be no such header, so we need to account for that. As long as we need to proceed with the delayed retries, we'll be completing the original incoming message. That's why logging at this point is important.
 
 
-```
-public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
-{
-	try
-	{
-		await next(context);
-	}
-	catch (AggregateException exception)
-	{
-		BindingMetadata meta = context.FunctionDefinition.InputBindings.FirstOrDefault(b => b.Value.Type == "serviceBusTrigger").Value;
-		var input = await context.BindInputAsync<ServiceBusReceivedMessage>(meta);
-		var message = input.Value ?? throw new Exception($"Failed to send message to error queue, message was null. Original exception: {exception.Message}", exception);
-		if (message.DeliveryCount <= 5)
-		{
-			logger.LogDebug("Failed processing message {MessageId} after {Attempt} time, will retry", message.MessageId, message.DeliveryCount);
-			throw;
-		}
-		#region Delayed Retries
-		var retries = message.GetNumberOfAttemptedDelayedRetries();
-		if (retries < NumberOfDelayedRetries)
-		{
-			var retriedMessage = message.CloneForDelayedRetry(retries + 1);
-			await using var senderRetries = serviceBusClient.CreateSenderFor(Enum.Parse<Endpoint>(context.FunctionDefinition.Name));
-			await senderRetries.ScheduleMessageAsync(retriedMessage, DateTimeOffset.UtcNow.Add(DelayedRetryBackoff));
-			logger.LogWarning("Message ID {MessageId} failed all immediate retries. Will perform a delayed retry #{Attempt} in {Time}", message.MessageId, retries + 1, DelayedRetryBackoff);
-			return;
-		}
-		#endregion
-		// TODO: remove when fixed https://github.com/Azure/azure-functions-dotnet-worker/issues/993
-		var specificException = GetSpecificException(exception);
-		var failedMessage = message.CloneForError(context.FunctionDefinition.Name, specificException);
-		var sender = serviceBusClient.CreateSenderFor(Endpoint.Error);
-		await sender.SendMessageAsync(failedMessage);
-		logger.LogError("Message ID {MessageId} failed processing and was moved to the error queue", message.MessageId);
-	}
+```csharp
+public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
+{
+	try
+	{
+		await next(context);
+	}
+	catch (AggregateException exception)
+	{
+		BindingMetadata meta = context.FunctionDefinition.InputBindings.FirstOrDefault(b => b.Value.Type == "serviceBusTrigger").Value;
+		var input = await context.BindInputAsync<ServiceBusReceivedMessage>(meta);
+		var message = input.Value ?? throw new Exception($"Failed to send message to error queue, message was null. Original exception: {exception.Message}", exception);
+		if (message.DeliveryCount <= 5)
+		{
+			logger.LogDebug("Failed processing message {MessageId} after {Attempt} time, will retry", message.MessageId, message.DeliveryCount);
+			throw;
+		}
+		#region Delayed Retries
+		var retries = message.GetNumberOfAttemptedDelayedRetries();
+		if (retries < NumberOfDelayedRetries)
+		{
+			var retriedMessage = message.CloneForDelayedRetry(retries + 1);
+			await using var senderRetries = serviceBusClient.CreateSenderFor(Enum.Parse<Endpoint>(context.FunctionDefinition.Name));
+			await senderRetries.ScheduleMessageAsync(retriedMessage, DateTimeOffset.UtcNow.Add(DelayedRetryBackoff));
+			logger.LogWarning("Message ID {MessageId} failed all immediate retries. Will perform a delayed retry #{Attempt} in {Time}", message.MessageId, retries + 1, DelayedRetryBackoff);
+			return;
+		}
+		#endregion
+		// TODO: remove when fixed https://github.com/Azure/azure-functions-dotnet-worker/issues/993
+		var specificException = GetSpecificException(exception);
+		var failedMessage = message.CloneForError(context.FunctionDefinition.Name, specificException);
+		var sender = serviceBusClient.CreateSenderFor(Endpoint.Error);
+		await sender.SendMessageAsync(failedMessage);
+		logger.LogError("Message ID {MessageId} failed processing and was moved to the error queue", message.MessageId);
+	}
 }
 ```
-
 And that's all there is. The extension methods `GetNumberOfAttemptedDelayedRetries()` and `CloneForDelayedRetry()` are provided below for reference.
 
 
-```
-public static int GetNumberOfAttemptedDelayedRetries(this ServiceBusReceivedMessage message)
-{
-	message.ApplicationProperties.TryGetValue("Error.DelayedRetries", out object? delayedRetries);
-	return delayedRetries is null ? 0 : (int)delayedRetries;
-}
-public static ServiceBusMessage CloneForDelayedRetry(this ServiceBusReceivedMessage message, int attemptedDelayedRetries)
-{
-	message.ApplicationProperties.TryGetValue("Error.OriginalMessageId", out var value);
-	var originalMessageId = value is null ? message.MessageId : value.ToString();
-	var error = new ServiceBusMessage(message)
-	{
-		ApplicationProperties =
-		{
-			["Error.DelayedRetries"]    = attemptedDelayedRetries,
-			["Error.OriginalMessageId"] = originalMessageId
-		},
-		// TODO: remove when https://github.com/Azure/azure-sdk-for-net/issues/38875 is addressed
-		TimeToLive = TimeSpan.MaxValue
-	};
-	return error;
+```csharp
+public static int GetNumberOfAttemptedDelayedRetries(this ServiceBusReceivedMessage message)
+{
+	message.ApplicationProperties.TryGetValue("Error.DelayedRetries", out object? delayedRetries);
+	return delayedRetries is null ? 0 : (int)delayedRetries;
+}
+public static ServiceBusMessage CloneForDelayedRetry(this ServiceBusReceivedMessage message, int attemptedDelayedRetries)
+{
+	message.ApplicationProperties.TryGetValue("Error.OriginalMessageId", out var value);
+	var originalMessageId = value is null ? message.MessageId : value.ToString();
+	var error = new ServiceBusMessage(message)
+	{
+		ApplicationProperties =
+		{
+			["Error.DelayedRetries"]    = attemptedDelayedRetries,
+			["Error.OriginalMessageId"] = originalMessageId
+		},
+		// TODO: remove when https://github.com/Azure/azure-sdk-for-net/issues/38875 is addressed
+		TimeToLive = TimeSpan.MaxValue
+	};
+	return error;
 }
 ```
-
 Notice the `"Error.OriginalMessageId"` header. It is helpful to correlate the original Service Bus message to the delayed retried messages as those are physically different messages.
 
 ![message][3]

@@ -165,21 +165,15 @@ public class ReflectiveDiscoverer : IReflectiveDiscoverer
 {
 ```
 <span style="color: blue">var </span>dictionary = <span style="color: blue">new </span><span style="color: #2b91af">Dictionary</span>&lt;key_type, item_type&gt;();
-```
-```
 <span style="color: blue">foreach </span>(<span style="color: blue">var </span>assembly <span style="color: blue">in </span>assemblies_to_scan())
 {
   <span style="color: blue">var </span>all_types_in_assembly = assembly.GetTypes().Where(verify_type_can_be_used);
-```
-```
-<span style="color: blue">foreach </span>(<span style="color: blue">var </span>candidate_type <span style="color: blue">in </span>all_types_in_assembly)
+  <span style="color: blue">foreach </span>(<span style="color: blue">var </span>candidate_type <span style="color: blue">in </span>all_types_in_assembly)
   {
     <span style="color: blue">var </span>instance = (item_type)<span style="color: #2b91af">Activator</span>.CreateInstance(candidate_type);
     dictionary.Add(generate_key_from(instance), instance);
   }
 }
-```
-```
 <span style="color: blue">return </span>dictionary;
 ```
 }

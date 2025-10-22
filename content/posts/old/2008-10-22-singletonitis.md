@@ -92,8 +92,6 @@ Utility can now have both static and non static versions of the methods, where n
 {
   <span class="kwrd">return</span> <span class="str">&quot;somevalue&quot;</span>;
 }
-```
-```
 <span class="kwrd">string</span> <strong>IUtility</strong>.GetHiddenFolderLocation()
 {
   <span class="kwrd">return</span> GetHiddenFolderLocation();

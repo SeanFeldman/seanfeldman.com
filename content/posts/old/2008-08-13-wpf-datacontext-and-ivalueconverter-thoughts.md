@@ -62,8 +62,8 @@ The declarative way looked uglier:
   <span class="kwrd">&lt;</span><span class="html">RowDefinition</span> <span class="kwrd">/&gt;</span>
   <span class="kwrd">&lt;</span><span class="html">RowDefinition</span> <span class="kwrd">/&gt;</span>
 <span class="kwrd">&lt;/</span><span class="html">Grid.RowDefinitions</span><span class="kwrd">&gt;</span>
-    <span class="kwrd">&lt;</span><span class="html">TextBox</span> <span class="attr">Grid</span>.<span class="attr">Row</span><span class="kwrd">="0"</span> 
-                 <span class="attr">Text</span><span class="kwrd">="{Binding Path=Amount, Converter={x:Static app:Converters.CurrencyConverter}}"</span> 
+    <span class="kwrd">&lt;</span><span class="html">TextBox</span> <span class="attr">Grid</span>.<span class="attr">Row</span><span class="kwrd">="0"</span>
+                 <span class="attr">Text</span><span class="kwrd">="{Binding Path=Amount, Converter={x:Static app:Converters.CurrencyConverter}}"</span>
                 <span class="attr">Height</span><span class="kwrd">="20"</span> <span class="attr">Width</span><span class="kwrd">="100"</span><span class="kwrd">&gt;&lt;/</span><span class="html">TextBox</span><span class="kwrd">&gt;</span>
 <span class="kwrd">&lt;</span><span class="html">Button</span> <span class="attr">Grid</span>.<span class="attr">Row</span><span class="kwrd">="1"</span> <span class="attr">Name</span><span class="kwrd">="btn"</span> <span class="attr">Height</span><span class="kwrd">="20"</span> <span class="attr">Content</span><span class="kwrd">="Report value"</span><span class="kwrd">&gt;&lt;/</span><span class="html">Button</span><span class="kwrd">&gt;</span>
 ```
@@ -84,8 +84,6 @@ namespace WpfApplication1
 {
   <span class="kwrd">return</span> ((<span class="kwrd">double</span>) <span class="kwrd">value</span>).ToString(<span class="str">"C2"</span>, culture);
 }
-```
-```
 <span class="kwrd">public</span> <span class="kwrd">object</span> ConvertBack(<span class="kwrd">object</span> <span class="kwrd">value</span>, Type targetType, <span class="kwrd">object</span> parameter, CultureInfo culture)
 {
   <span class="kwrd">double</span> result;

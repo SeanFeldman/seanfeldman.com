@@ -12,21 +12,19 @@ When Marty went back to 1955, he had no idea how to make it back. Using Azure Se
 
 Before version 3.3.1 the way to schedule future messages was by updating `BrokeredMessage.ScheduledEnqueueTimeUtc` property, setting it to some date/time in the future.
 
-```
-var message = new BrokeredMessage();
-message.ScheduledEnqueueTimeUtc = DateTime.UtcNow.AddSeconds(300);
+```csharp
+var message = new BrokeredMessage();
+message.ScheduledEnqueueTimeUtc = DateTime.UtcNow.AddSeconds(300);
 await sender.SendAsync(message).ConfigureAwait(false);
 ```
-
 The problem with this approach is that whenever a scheduled message needs to be canceled prior to becoming visible, it was not possible. Despite the property `SequenceNumber` being assigned by the broker on the sent `BrokeredMessage` (on the server), any attempt to access its value would result in `InvalidOperationException`. Therefore, any messages scheduled in the future and no longer needed would be "stuck" on the broker until the later time.
 
 With version 3.3.1 `QueueClient` or `TopicClient` can be used to schedule a message and cancel it later.
 
-```
-var sequenceNumber = await queueClient.ScheduleMessageAsync(message, DateTimeOffset.UtcNow.AddSeconds(300)).ConfigureAwait(false);
+```csharp
+var sequenceNumber = await queueClient.ScheduleMessageAsync(message, DateTimeOffset.UtcNow.AddSeconds(300)).ConfigureAwait(false);
 await queueClient.CancelScheduledMessageAsync(sequenceNumber).ConfigureAwait(false);
 ```
-
 The new API doesn't set the scheduled date/time on the message itself, but rather invokes `ScheduleMessageAsync()` method passing the message in and returning sequence number assigned by the broker right back. This sequence number can be used later to cancel the message at any point in time. Even when scheduled time has not arrived yet. No more messages that sit on the broker if not needed. 
 
 A few things to note:

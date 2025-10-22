@@ -51,48 +51,39 @@ An additional optional parameter is `ServiceBusClientOptions`. The options objec
 
 Retry options provide a way to specify the default retry policy which needs to implement the `ServiceBusRetryPolicy` base class.
 
-```
-var options = new ServiceBusClientOptions
-{
-    TransportType = ServiceBusTransportType.AmqpTcp,
-    RetryOptions = new ServiceBusRetryOptions(){
-        Mode = ServiceBusRetryMode.Exponential,
-        CustomRetryPolicy = new MyRetryPolicy()
-    }
-};
-```
-
-```
-public class MyRetryPolicy : ServiceBusRetryPolicy
-{
-    public override TimeSpan? CalculateRetryDelay(Exception lastException, int attemptCount)
-    {
-        return TimeSpan.FromSeconds(10);
+```csharp
+var options = new ServiceBusClientOptions
+{
+    TransportType = ServiceBusTransportType.AmqpTcp,
+    RetryOptions = new ServiceBusRetryOptions(){
+        Mode = ServiceBusRetryMode.Exponential,
+        CustomRetryPolicy = new MyRetryPolicy()
     }
-```
-
-```
-public override TimeSpan CalculateTryTimeout(int attemptCount)
-    {
-        return TimeSpan.FromSeconds(30);
-    }
+};
+public class MyRetryPolicy : ServiceBusRetryPolicy
+{
+    public override TimeSpan? CalculateRetryDelay(Exception lastException, int attemptCount)
+    {
+        return TimeSpan.FromSeconds(10);
+    }
+    public override TimeSpan CalculateTryTimeout(int attemptCount)
+    {
+        return TimeSpan.FromSeconds(30);
+    }
 }
 ```
-
 Note: at this point, retry options set on the Service Bus client will be the options applied to every other client it creates.
 
-```
+```csharp
 await using var client = new ServiceBusClient(connectionString, options);
 ```
-
 ## Disposal
 
 The `ServiceBusClient` implements `IDisposeAsync` and is responsible for resource cleanup. `.DisposeAsync()` has to be called when the client is no longer required and should be disposed of and was not created with a `using` keyword. This includes broker connection termination.
 
-```
+```csharp
 await sender.DisposeAsync();
 ```
-
 And with this, we've concluded the entry point into the new Azure Service Bus SDK, a.k.a. Track 2. In the next post, we'll look at sending and receiving messages with the new client.
 
 

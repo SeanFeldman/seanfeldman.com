@@ -56,33 +56,29 @@ The property represents the payload and is no longer an array of bytes but rathe
 
 To send a message, we need to go through the entry point which is `ServiceBusClient`:
 
-```
+```csharp
 await using var client = new ServiceBusClient(connectionString, serviceBusClientOptions);
 ```
-
 Once the client is obtained, a `ServiceBusSender` can be created. Sender creation is done with the client acting as a factory:
 
-```
+```csharp
 var sender = client.CreateSender("queue-or-topic"); // entity needs to exist
 ```
-
 *Note: `ServiceBusSenderOptions` is optional and currently only useful when sending messages transactionally using Send-Via feature. Will be covered in a later post.*
 
 And sending a message:
 
-```
-var message = new ServiceBusMessage(Encoding.UTF8.GetBytes("hello"));
+```csharp
+var message = new ServiceBusMessage(Encoding.UTF8.GetBytes("hello"));
 await sender.SendAsync(message, cancellationToken);
 ```
-
 And here's the excellent news - Track 2 has finally added support for `CancellationToken` with the receive operation (spoiler alert, not only sending operation).
 
 And finally, when the sender is no longer required, it can be disposed:
 
-```
+```csharp
 await sender.DisposeAsync();
 ```
-
 With this, messages can be sent to queues and topics. Next is receiving messages.
 
 

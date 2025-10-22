@@ -42,20 +42,18 @@ At this point, the code is ready to be executed. Do not to try it locally, as yo
 
 Most noticeable few lines of code are the ones that instruct ASB client to retrieve SAS token from MSI:
 
-```
-var messagingFactorySettings = new MessagingFactorySettings
-{
-  TokenProvider = TokenProvider.CreateManagedServiceIdentityTokenProvider(ServiceAudience.ServiceBusAudience),
-  TransportType = TransportType.Amqp
+```csharp
+var messagingFactorySettings = new MessagingFactorySettings
+{
+  TokenProvider = TokenProvider.CreateManagedServiceIdentityTokenProvider(ServiceAudience.ServiceBusAudience),
+  TransportType = TransportType.Amqp
 };
 ```
-
 There's also a broker known issue that can be worked around with the following line of code until the issue is fixed.
 
-```
+```csharp
 messagingFactorySettings.AmqpTransportSettings.EnableLinkRedirect = false;
 ```
-
 If you're using this code in your POC, subscribe to the [tracking issue](https://github.com/Azure/azure-service-bus/issues/136) to remove this workaround once it's fixed on the broker.
 
 **Note**: it's a good and responsible practice to leave TODO with tracking issue. Do not leave a note for future w/o ability to follow up on something that can be tracked back later. Otherwise, the workaround is sealed and will make it into production.
