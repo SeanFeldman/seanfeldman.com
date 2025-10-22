@@ -41,13 +41,17 @@ theme = 'DoIt'
   [markup.highlight]
     # false is a necessary configuration (https://github.com/dillonzq/LoveIt/issues/158)
     noClasses = false
+  # Goldmark is the default Markdown renderer in Hugo
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      # Allow raw HTML in Markdown (content is under your control)
+      unsafe = true
 
 [home]
   rss = 10
   [home.profile]
     enable = true
     gravatarEmail = 'feldman.sean@gmail.com'
-    subtitle = 'Thoughts and code'
     social = true
 
 [social]
@@ -64,6 +68,8 @@ theme = 'DoIt'
   avatarURL = "/images/avatar.webp"
   # URL the avatar links to
   avatarLinkURL = ""
+  # Subtitle/tagline shown under profile
+  subtitle = "Thoughts and code"
   # Social links displayed on home page
   social = true
 
