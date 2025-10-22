@@ -46,9 +46,7 @@ Reading more of the great RFC, I found an example #3, in section 2.10
 >     Content-Disposition: attachment; filename=genome.jpeg;
 >       modification-date=&quot;Wed, 12 Feb 1997 16:29:51 -0500&quot;;
 >     Content-Description: a complete map of the human genome
-> ```
-> ```
-> &lt;jpeg data&gt;</pre>
+>     &lt;jpeg data&gt;</pre>
 > ```
 > 
 > ```

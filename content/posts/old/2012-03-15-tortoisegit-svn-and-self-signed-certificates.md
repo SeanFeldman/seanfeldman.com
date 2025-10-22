@@ -8,8 +8,4 @@ tags:
 - Tools
 author: Sean Feldman
 ---
-
-
-I have ran into a problem when tried to pull down a project from subversion repository that uses self-signed certificate. This [post](https://code.google.com/p/tortoisegit/issues/detail?id=318#c11) has helped tremendously.
-
-
+<p>I have ran into a problem when tried to pull down a project from subversion repository that uses self-signed certificate. This <a href="https://code.google.com/p/tortoisegit/issues/detail?id=318#c11" target="_blank">post</a> has helped tremendously. </p>

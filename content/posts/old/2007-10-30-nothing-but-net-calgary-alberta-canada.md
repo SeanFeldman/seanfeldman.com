@@ -8,8 +8,4 @@ tags:
 - .NET
 author: Sean Feldman
 ---
-
-
-Counting days to start the session.
-
-
+<p>Counting days to start the session. </p>

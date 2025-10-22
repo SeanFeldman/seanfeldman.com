@@ -8,8 +8,4 @@ tags:
 - Agile
 author: Sean Feldman
 ---
-
-
-Stephen A. Bohlen has started a great series of [screencasts](http://www.autumnofagile.net/). You should definitely check it out if you are into Agile and the rest. The work is really done well, so donate!
-
-
+<p>Stephen A. Bohlen has started a great series of <a href="http://www.autumnofagile.net/" target="_blank">screencasts</a>. You should definitely check it out if you are into Agile and the rest. The work is really done well, so donate!</p>

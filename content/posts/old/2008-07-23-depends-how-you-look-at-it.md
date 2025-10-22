@@ -6,8 +6,4 @@ updated: '2008-07-23T18:13:45'
 draft: false
 author: Sean Feldman
 ---
-
-
-Some call it science, I call it art. Watch the [video](http://www.maseratigranturismo-s.com/).
-
-
+<p>Some call it science, I call it art. Watch the <a href="http://www.maseratigranturismo-s.com/">video</a>.</p>

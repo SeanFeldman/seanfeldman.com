@@ -6,8 +6,4 @@ updated: '2008-03-23T02:44:32'
 draft: false
 author: Sean Feldman
 ---
-
-
-Svn 1Click Setup - did a very nice job from specifying environment locations and variable to configuring the server and service. Simplifies a lot the whole experience.
-
-
+<p>Svn 1Click Setup - did a very nice job from specifying environment locations and variable to configuring the server and service. Simplifies a lot the whole experience. </p>

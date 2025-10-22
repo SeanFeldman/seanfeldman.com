@@ -8,4 +8,4 @@ tags:
 - .NET
 author: Sean Feldman
 ---
-Download it [here](http://sourceforge.net/project/showfiles.php?group_id=73818).
+<div class="wlWriterSmartContent" id="scid:605EEA63-B54B-4e6d-A290-F5E9E8229FC1:9a110799-318c-4762-baae-fa597f1f551b" style="padding-right: 0px; display: inline; padding-left: 0px; padding-bottom: 0px; margin: 0px; padding-top: 0px"></div>Download it <a href="http://sourceforge.net/project/showfiles.php?group_id=73818" target="_blank">here</a>.

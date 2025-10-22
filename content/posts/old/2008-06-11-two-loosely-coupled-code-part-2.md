@@ -23,25 +23,17 @@ namespace Local.ADL.Home
 ```
 <span class="kwrd">private</span> <span class="kwrd">readonly</span> IHomeModel model;
 <span class="kwrd">private</span> <span class="kwrd">readonly</span> IHomeView view;
-```
-```
-<span class="kwrd">public</span> HomePresenter(IHomeView view): 
+<span class="kwrd">public</span> HomePresenter(IHomeView view):
                     <span class="kwrd">this</span>(view, <u><span class="kwrd">new</span> HomeModel()</u>){}
-```
-```
 <span class="kwrd">public</span> HomePresenter(IHomeView view, IHomeModel model)
 {
   <span class="kwrd">this</span>.view = view;
   <span class="kwrd">this</span>.model = model;
 }
-```
-```
 <span class="kwrd">public</span> <span class="kwrd">void</span> Initialize()
 {
   view.Load += View_OnLoad;
 }
-```
-```
 <span class="kwrd">private</span> <span class="kwrd">void</span> View_OnLoad(<span class="kwrd">object</span> sender, EventArgs e)
 {
   <span class="kwrd">if</span> (!view.IsPostBack)
@@ -68,8 +60,6 @@ namespace Local.ADL.Home
 {
   <span class="kwrd">return</span> <u>UserSession.IsPlanAorB</u>;
 }
-```
-```
 <span class="kwrd">public</span> <span class="kwrd">bool</span> CanShowSomething()
 {
   <span class="kwrd">return</span> <u>UserSession.ShouldSeeSomething</u>;
@@ -97,19 +87,13 @@ namespace Local.ADL.Home
 ```
 <span class="kwrd">private</span> <span class="kwrd">readonly</span> IHomeModel model;
 <span class="kwrd">private</span> <span class="kwrd">readonly</span> IHomeView view;
-```
-```
-<span class="kwrd">public</span> HomePresenter(IHomeView view): 
+<span class="kwrd">public</span> HomePresenter(IHomeView view):
    <span class="kwrd">this</span>(view, <u>DependencyResolver.GetImplementerOf(IHomeModel)</u>){}
-```
-```
 <span class="kwrd">public</span> HomePresenter(IHomeView view, IHomeModel model)
 {
   <span class="kwrd">this</span>.view = view;
   <span class="kwrd">this</span>.model = model;
 }
-```
-```
 <span class="rem">// ...</span>
 ```
 

@@ -8,8 +8,4 @@ tags:
 - BizTalk
 author: Sean Feldman
 ---
-
-
-Time saving project to generate [BizTalk Server Pipeline Components](http://btsplcw.codeplex.com/Wikipage).
-
-
+<p>Time saving project to generate <a href="http://btsplcw.codeplex.com/Wikipage" target="_blank">BizTalk Server Pipeline Components</a>.</p>

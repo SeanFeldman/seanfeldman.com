@@ -6,8 +6,4 @@ updated: '2009-01-02T18:20:55'
 draft: false
 author: Sean Feldman
 ---
-
-
-Davy Brion ["The Life And Times of a Bug"](http://davybrion.com/blog/2009/01/the-life-and-times-of-a-bug/) post.
-
-
+<p>Davy Brion <a href="http://davybrion.com/blog/2009/01/the-life-and-times-of-a-bug/" target="_blank">&quot;The Life And Times of a Bug&quot;</a> post.</p>

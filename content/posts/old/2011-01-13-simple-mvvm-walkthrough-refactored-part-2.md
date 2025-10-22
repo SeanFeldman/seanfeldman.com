@@ -23,17 +23,11 @@ class PropertyOf<T>
 public static string Resolve(Expression&lt;Func&lt;T, object&gt;&gt; expression)
 {
   Expression candidate = null;
-```
-```
-if (expression.Body is UnaryExpression)
+  if (expression.Body is UnaryExpression)
     candidate = (expression.Body as UnaryExpression).Operand;
-```
-```
-if (expression.Body is MemberExpression)
+  if (expression.Body is MemberExpression)
     candidate = expression.Body;
-```
-```
-return (candidate as MemberExpression).Member.Name;
+  return (candidate as MemberExpression).Member.Name;
 }
 ```
 }
@@ -48,15 +42,11 @@ public void Should_return_integer_property_name_as_is_within_the_containing_clas
 {
   PropertyOf&lt;Dummy&gt;.Resolve(x =&gt; x.IntegerProperty).Should_Be_Equal_To("IntegerProperty");
 }
-```
-```
 [Observation]
 public void Should_return_string_property_name_as_is_within_the_containing_class()
 {
   PropertyOf&lt;Dummy&gt;.Resolve(x =&gt; x.StringProperty).Should_Be_Equal_To("StringProperty");
 }
-```
-```
 private class Dummy
 {
   public int IntegerProperty { get; set; }

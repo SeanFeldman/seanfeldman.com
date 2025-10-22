@@ -38,20 +38,14 @@ public class Some_specification : ContextSpecification
 	[Parameter]
 ```
 public string Value{ get; set; }
-```
-```
-[Parameter]
+             [Parameter]
              public int ExpectedLength{ get; set; }
-```
-```
-[Because]
+             [Because]
              protected void When_obtaining_length()
              {
                       result = system_under_test.GetLength(Value);
              }
-```
-```
-[Observation]
+             [Observation]
   	 public void Should_get_proper_length()
              {
                       result.Should_be_equal_to(ExpectedLength);

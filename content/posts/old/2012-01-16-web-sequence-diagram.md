@@ -8,8 +8,4 @@ tags:
 - Tools
 author: Sean Feldman
 ---
-
-
-This is one handy tool I really liked – [web sequence diagrams online](http://www.websequencediagrams.com/). No installations, quick, simple, free (except advance stuff).
-
-
+<p>This is one handy tool I really liked – <a href="http://www.websequencediagrams.com/" target="_blank">web sequence diagrams online</a>. No installations, quick, simple, free (except advance stuff).</p>

@@ -8,8 +8,4 @@ tags:
 - Books
 author: Sean Feldman
 ---
-
-
-Anyone can recommend on good Domain Modeling (not design) books? Thank you.
-
-
+<p>Anyone can recommend on good Domain Modeling (not design) books? Thank you.</p>
