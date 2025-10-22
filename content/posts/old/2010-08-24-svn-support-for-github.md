@@ -8,8 +8,4 @@ tags:
 - Other
 author: Sean Feldman
 ---
-
-
-[This](http://github.com/blog/626-announcing-svn-support) might be helpful for those that work with SVN and require (read-only for now) access to code that is under GitHub
-
-
+<p><a href="http://github.com/blog/626-announcing-svn-support" target="_blank">This</a> might be helpful for those that work with SVN and require (read-only for now) access to code that is under GitHub</p>

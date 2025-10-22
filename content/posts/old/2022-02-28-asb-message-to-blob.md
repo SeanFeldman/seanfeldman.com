@@ -9,11 +9,15 @@ tags:
 - Functions
 author: Sean Feldman
 ---
-About 5+ years ago I blogged about [turning messages into audit blobs][1]. Back then, it was for Storage Queue messages and the early Azure Functions implementation that required portal configuration. Since then, Storage Queues has been replaced by Azure Service Bus and Azure Functions has gained the ability to declare everything through the code. And not only that but also in two different ways, using
-1. In-Process SDK
-1. Isolated Worker SDK (out-of-process)
-The concept hasn't changed much but the the code did become somewhat simpler.
-\*\*In-Process SDK\*\*
+About 5+ years ago I blogged about [turning messages into audit blobs][1]. Back then, it was for Storage Queue messages and the early Azure Functions implementation that required portal configuration. Since then, Storage Queues has been replaced by Azure Service Bus and Azure Functions has gained the ability to declare everything through the code. And not only that but also in two different ways, using
+
+1. In-Process SDK
+1. Isolated Worker SDK (out-of-process)
+
+The concept hasn't changed much but the the code did become somewhat simpler.
+
+**In-Process SDK**
+
 ```
 public static class MessageTriggeredFunction
 {
@@ -27,7 +31,10 @@ public static class MessageTriggeredFunction
     }
 }
 ```
-\*\*Isolated Worker SDK\*\*
+
+
+**Isolated Worker SDK**
+
 ```
 public class MessageTriggeredFunctionIsolated
 {
@@ -41,5 +48,7 @@ public class MessageTriggeredFunctionIsolated
   }
 }
 ```
-The two snippets will result in the same outcome - a message will trigger the function and cause a blob to be generated and named as `message-id.txt` where `message-id` will be the physical message id.
+
+The two snippets will result in the same outcome - a message will trigger the function and cause a blob to be generated and named as `message-id.txt` where `message-id` will be the physical message id.
+
 [1]: https://weblogs.asp.net/sfeldman/azure-functions-to-make-audit-queue-and-auditors-happy

@@ -8,8 +8,4 @@ tags:
 - Other
 author: Sean Feldman
 ---
-
-
-I really liked [this presentation](http://www.infoq.com/presentations/Good-to-Great-Developer-Chris-Hedgate). Highly recommended.
-
-
+<p>I really liked <a href="http://www.infoq.com/presentations/Good-to-Great-Developer-Chris-Hedgate" target="_blank">this presentation</a>. Highly recommended.</p>

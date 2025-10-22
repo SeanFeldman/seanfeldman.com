@@ -8,8 +8,4 @@ tags:
 - Personal
 author: Sean Feldman
 ---
-
-
-This is a [good joke](http://vimeo.com/8550868). As always, in every joke, there’s a lot of truth.
-
-
+<p>This is a <a href="http://vimeo.com/8550868" target="_blank">good joke</a>. As always, in every joke, there’s a lot of truth.</p>

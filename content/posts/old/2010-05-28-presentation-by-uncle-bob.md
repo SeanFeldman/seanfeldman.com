@@ -8,8 +8,4 @@ tags:
 - Other
 author: Sean Feldman
 ---
-
-
-Robert C. Martin gave a nice [presentation](http://www.infoq.com/presentations/Robert-C.-Martin-Bad-Code) on InfoQ, highly recommended.
-
-
+<p>Robert C. Martin gave a nice <a href="http://www.infoq.com/presentations/Robert-C.-Martin-Bad-Code" target="_blank">presentation</a> on InfoQ, highly recommended.</p>

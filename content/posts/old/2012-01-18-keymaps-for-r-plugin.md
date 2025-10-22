@@ -8,8 +8,4 @@ tags:
 - Tools
 author: Sean Feldman
 ---
-
-
-If you are starting with R# (which you should definitely consider in case you are a professional .NET developer and not use an alternative), this [plugin](http://keymaps.forresharper.org/) might be helpful to start with all the shortcuts.
-
-
+<p align="left">If you are starting with R# (which you should definitely consider in case you are a professional .NET developer and not use an alternative), this <a href="http://keymaps.forresharper.org/" target="_blank">plugin</a> might be helpful to start with all the shortcuts.</p>

@@ -10,5 +10,6 @@ tags:
 - NServiceBus
 author: Sean Feldman
 ---
-A recent talk I gave online at ServerlessDays Amsterdam
-
+A recent talk I gave online at ServerlessDays Amsterdam
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/oxsDVjxGGfc?start=3288" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

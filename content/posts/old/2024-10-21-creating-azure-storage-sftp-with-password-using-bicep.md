@@ -9,9 +9,12 @@ tags:
 - Bicep
 author: Sean Feldman
 ---
-Azure Storage service has a neat little option for hosting an SFTP. Doing so lets you upload your files as blobs to your Storage account. This is extremely helpful, especially when working on the decades-old system migrated to Azure but still requiring SFTP for data transfer. The documentation and setup of SFTP with a Storage account are straightforward—until you try to create the resource using Bicep and set the password as part of Bicep deployment. This is where it's getting a bit cumbersome.
-TLDR: Setting the password when creating the Storage account and SFTP user using Bicep is impossible. The password has to be \*\*reset\*\*.
-This means that OOTB Bicep can create an SFTP user but cannot set the password. The password needs to be reset, even if it hasn't been set yet, and the only way to do that is via the portal UI or scripting. The portal UI option is unacceptable if you're trying to automate your resource deployment. Which leaves the scripting option. Let's dive into the code.
+Azure Storage service has a neat little option for hosting an SFTP. Doing so lets you upload your files as blobs to your Storage account. This is extremely helpful, especially when working on the decades-old system migrated to Azure but still requiring SFTP for data transfer. The documentation and setup of SFTP with a Storage account are straightforward—until you try to create the resource using Bicep and set the password as part of Bicep deployment. This is where it's getting a bit cumbersome.
+
+TLDR: Setting the password when creating the Storage account and SFTP user using Bicep is impossible. The password has to be **reset**.
+
+This means that OOTB Bicep can create an SFTP user but cannot set the password. The password needs to be reset, even if it hasn't been set yet, and the only way to do that is via the portal UI or scripting. The portal UI option is unacceptable if you're trying to automate your resource deployment. Which leaves the scripting option. Let's dive into the code.
+
 ```
 param location string = resourceGroup().location
 var sftpRootContainterName = 'sftp'
@@ -94,4 +97,5 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2023-08-01'= {
 // DO NOT do this in production
 output text string = deploymentScript.properties.outputs.sshPassword
 ```
+
 The solution is to deploy and run the `deploymentScript` AZ CLI script to reset the password. The output of the `az storage account local-user regenerate-password` is the generated password, the output object of the script resource, as the `sshPassword`. But this is not ideal for production. For production, keeping the password in Azure KeyVault or Azure Config Service is better. With a twist, testing if the value exists first and setting it only if it doesn't is better.

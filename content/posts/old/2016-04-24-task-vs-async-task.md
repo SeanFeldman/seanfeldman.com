@@ -8,31 +8,41 @@ tags:
 - .NET
 author: Sean Feldman
 ---
-How often do you write code and think about what will it look like the compiler is done with it? If you're like me, not often. But is it a good thing that over the time we've learned to trust unquestionably the compiler and blindly rely on it to do the job for us?
-I was lucky to get some guidance from [Daniel Marbach][1] on `async`/`await` and the importance of understanding code optimizations that compiler is performing. Without any further due, let's dive into an example.
-Consider the following method:
+How often do you write code and think about what will it look like the compiler is done with it? If you're like me, not often. But is it a good thing that over the time we've learned to trust unquestionably the compiler and blindly rely on it to do the job for us? 
+
+I was lucky to get some guidance from [Daniel Marbach][1] on `async`/`await` and the importance of understanding code optimizations that compiler is performing. Without any further due, let's dive into an example.
+
+Consider the following method:
+
 ```
 Task MainAsync()
 {
    return Task.Delay(1000);
 }
 ```
-Now the same method with a slight variation, marking the method as async and awaiting the delay.
+
+Now the same method with a slight variation, marking the method as async and awaiting the delay.
+
 ```
 async Task MainAsync()
 {
    await Task.Delay(1000);
 }
 ```
-Looks almost identical. But is it? Let's look at what compiler generates.
-For the first method, it's identical to the original code:
+
+Looks almost identical. But is it? Let's look at what compiler generates.
+
+For the first method, it's identical to the original code:
+
 ```
 Task MainAsync()
 {
    return Task.Delay(1000);
 }
 ```
-But for the second method, the compiler does... magic and voodoo.
+
+But for the second method, the compiler does... magic and voodoo.
+
 ```
 private Task MainAsync2()
 {
@@ -45,7 +55,10 @@ private Task MainAsync2()
 	return ((AsyncTaskMethodBuilder) @mainAsync2D2.\u003C\u003Et__builder).get_Task();
 }
 ```
-No magic. The compiler just creates a state machine due to async/await keywords.
+
+No magic. The compiler just creates a state machine due to async/await keywords. 
+ 
+
 ```
 [/*Attribute with token 0C000007*/CompilerGenerated]
   private sealed class \u003CMainAsync2\u003Ed__2 : IAsyncStateMachine
@@ -102,6 +115,9 @@ No magic. The compiler just creates a state machine due to async/await keywords.
 	}
   }
 ```
-The moral of this is simple: if you don't need to await, just return the `Task`. It will do the same, and you'll save a lot of unnecessary state machine construction, with its wasteful memory and execution where it's not needed.
-[1]: http://www.planetgeek.ch/author/danielmarbach/
-
+
+The moral of this is simple: if you don't need to await, just return the `Task`. It will do the same, and you'll save a lot of unnecessary state machine construction, with its wasteful memory and execution where it's not needed.
+
+
+[1]: http://www.planetgeek.ch/author/danielmarbach/
+
