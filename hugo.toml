@@ -3,6 +3,13 @@ languageCode = 'en-us'
 title = "Sean Feldman's Blog"
 theme = 'DoIt'
 
+# Site outputs: enable RSS feed generation for home and sections
+[outputs]
+  home = ["HTML", "RSS"]
+  section = ["HTML", "RSS"]
+  taxonomy = ["HTML", "RSS"]
+  taxonomyTerm = ["HTML"]
+
 [permalinks]
   posts = "/posts/:slug"
 
@@ -42,6 +49,14 @@ theme = 'DoIt'
     url = "/about/"
     title = ""
     weight = 4
+  [[menu.main]]
+    identifier = "rss"
+    pre = ""
+    post = ""
+    name = "RSS"
+    url = "/index.xml"
+    title = ""
+    weight = 5
 
 # Markup related configuration in Hugo
 [markup]
@@ -92,6 +107,7 @@ theme = 'DoIt'
   GitHub = "SeanFeldman"
   Twitter = "sfeldman"
   Linkedin = "feldmansean"
+  RSS = true
 
 [params.page.share]
 enable = true
@@ -170,3 +186,16 @@ Mastodon = true
   # Use a very large number so code blocks are always open
   maxShownLines = 10000
   copy = true
+
+# Author information for footer and metadata
+[params.author]
+  name = "Sean Feldman"
+  link = "https://seanfeldman.com/"
+
+# Footer configuration (DoIt theme)
+[params.footer]
+  enable = true
+  # Remove "Powered by Hugo | Theme DoIt"
+  hugo = false
+  # Show a year range
+  since = 2007
