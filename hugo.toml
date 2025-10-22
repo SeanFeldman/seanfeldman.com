@@ -118,3 +118,9 @@ Mastodon = true
 	    [params.page.comment.disqus]
 		  enable = true
 		  shortname = "sean-feldman-blog"
+
+# DoIt theme: show full code blocks (no collapsing)
+[params.page.code]
+  # Use a very large number so code blocks are always open
+  maxShownLines = 10000
+  copy = true
