@@ -1,7 +1,7 @@
 baseURL = 'https://seanfeldman.com/'
 languageCode = 'en-us'
-title = 'Sean Feldman Blog'
-theme = 'github.com/HEIGE-PCloud/DoIt'
+title = "Sean Feldman's Blog"
+theme = 'DoIt'
 
 [permalinks]
   posts = "/posts/:slug"
@@ -34,20 +34,37 @@ theme = 'github.com/HEIGE-PCloud/DoIt'
     url = "/categories/"
     title = ""
     weight = 3
+  [[menu.main]]
+    identifier = "about"
+    pre = ""
+    post = ""
+    name = "About"
+    url = "/about/"
+    title = ""
+    weight = 4
 
 # Markup related configuration in Hugo
 [markup]
+  # Table of contents configuration
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 6
+    ordered = false
   # Syntax Highlighting (https://gohugo.io/content-management/syntax-highlighting)
   [markup.highlight]
     # false is a necessary configuration (https://github.com/dillonzq/LoveIt/issues/158)
     noClasses = false
+  # Goldmark is the default Markdown renderer in Hugo
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      # Allow raw HTML in Markdown (content is under your control)
+      unsafe = true
 
 [home]
   rss = 10
   [home.profile]
     enable = true
     gravatarEmail = 'feldman.sean@gmail.com'
-    subtitle = 'Thoughts and code'
     social = true
 
 [social]
@@ -64,12 +81,17 @@ theme = 'github.com/HEIGE-PCloud/DoIt'
   avatarURL = "/images/avatar.webp"
   # URL the avatar links to
   avatarLinkURL = ""
+  # Subtitle/tagline shown under profile
+  subtitle = "Thoughts and code"
+  # Social links displayed on home page
+  social = true
 
 # Social config about the author
 [params.social]
+  Email = "feldman.sean@gmail.com"
   GitHub = "SeanFeldman"
-  Twitter = "@sfeldman"
-  LinkedIn = "feldmansean"
+  Twitter = "sfeldman"
+  Linkedin = "feldmansean"
 
 [params.page.share]
 enable = true
@@ -112,9 +134,39 @@ Mastodon = true
 
 # DoIt theme configuration: enable Disqus comments
 [params]
+  # Default theme ("light", "dark", "auto")
+  defaultTheme = "dark"
+  
+  # Favicon config
+  [params.app]
+    # optional site title override for the app when added to an iOS home screen or Android launcher
+    title = "Sean Feldman's Blog"
+    # whether to omit favicon resource links
+    noFavicon = false
+    # modern SVG favicon to use in place of older style .png and .ico files
+    svgFavicon = ""
+    # Safari mask icon color
+    iconColor = "#5bbad5"
+    # Windows v8-10 tile color
+    tileColor = "#da532c"
+
   [params.page]
+    [params.page.toc]
+      # Enable table of contents
+      enable = true
+      # Keep the static TOC in front of the post
+      keepStatic = false
+      # Make TOC auto-collapse/expand in sidebar
+      auto = true
+    
     [params.page.comment]
 	  enable = true
 	    [params.page.comment.disqus]
 		  enable = true
 		  shortname = "sean-feldman-blog"
+
+# DoIt theme: show full code blocks (no collapsing)
+[params.page.code]
+  # Use a very large number so code blocks are always open
+  maxShownLines = 10000
+  copy = true
