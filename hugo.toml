@@ -9,7 +9,6 @@ theme = 'DoIt'
   home = ["HTML", "RSS", "JSON"]
   section = ["HTML", "RSS"]
   taxonomy = ["HTML", "RSS"]
-  taxonomyTerm = ["HTML"]
 
 [permalinks]
   posts = "/posts/:slug"
